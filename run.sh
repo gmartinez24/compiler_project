@@ -29,7 +29,7 @@ for folder in $folders; do
 		echo "Running $folder:$file"
 		# run the file and compare to expected output
 		mvn -q exec:java -Dexec.args="-s tests/$folder/$file.txt" | \
-			diff --ignore-all-space - tests/$folder/$file.out > /dev/null
+			diff --ignore-all-space - tests/$folder/$file.out
 		# if the return code was not 0, then the test failed
 		if [ $? -ne 0 ]; then
 			echo "Test: $folder:$file failed"

@@ -143,19 +143,26 @@ public class Scanner implements Iterator<Token> {
         }
 
         // if nextChar is a digit (Modified fromDragon Fig 2.30)
-        // TODO: handle floats
-        if (Character.isDigit(nextChar) ) {
-            Integer v = 0;
-            do {
-                v = 10 * v + (Character.digit(nextChar, 10));
-                nextChar = readChar();
-            } while (Character.isDigit(nextChar));
+        // TODO: handle floats and negatives
+        if (nextChar == '-') {
             try {
-                input.reset();
-            } catch(IOException e) {
-                System.out.println("Error resetting input");
+                int c = readChar();
+                if (Character.isDigit(c)) {
+                    //input.reset();
+                    scan += (char)nextChar;
+                    nextChar = c;
+                    return createNumberToken();
+                } else {
+                    input.reset();
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading from input");
             }
-            return Token.INT_VALUE(v.toString(), lineNum, charPos);
+
+        }
+
+        if (Character.isDigit(nextChar)) {
+            return createNumberToken();
         }
 
         // if nextChar is a letter (Modified from Dragon 2.31)
@@ -205,6 +212,11 @@ public class Scanner implements Iterator<Token> {
             scan += (char)nextChar;
             tok = new Token(scan ,lineNum, charPos);
         }
+        // tok generated ERROR token on instantiation
+        if (lexeme.equals("")) {
+            scan = "";
+            return Token.ERROR(lineNum, charPos);
+        }
         scan = "";
         try {
             // resets the BufferedReader pointer back one (needed it to be put 1 ahead to read 1 char ahead)
@@ -252,4 +264,49 @@ public class Scanner implements Iterator<Token> {
         }
         return -1;
     }
+
+    /* called with knowledge that next token should be a number
+     *
+     * Reads in the token and returns either an INT_VAL, FLOAT_VAL or ERROR
+     *
+    */
+    private Token createNumberToken() {
+        Integer v = 0;
+        do {
+            v = 10 * v + (Character.digit(nextChar, 10));
+            nextChar = readChar();
+        } while (Character.isDigit(nextChar));
+        // for floating point values
+        if (nextChar == '.') {
+            scan += v.toString() + '.';
+            v = 0;
+            nextChar = readChar();
+            if (!Character.isDigit(nextChar)) {
+                try {
+                    input.reset();
+                } catch (IOException e) {
+                    System.out.println("Error resetting input");
+                }
+                return Token.ERROR(lineNum, charPos);
+            }
+            do {
+                v = 10 * v + (Character.digit(nextChar, 10));
+                nextChar = readChar();
+            } while (Character.isDigit(nextChar));
+        }
+        scan+=v.toString();
+        try {
+            input.reset();
+        } catch(IOException e) {
+            System.out.println("Error resetting input");
+        }
+        String lexeme = scan;
+        scan="";
+        // determine whether to return float or int
+        if (lexeme.contains(".")) {
+            return Token.FLOAT_VALUE(lexeme, lineNum, charPos);
+        }
+        return Token.INT_VALUE(lexeme, lineNum, charPos);
+    }
 }
+
