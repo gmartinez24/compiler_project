@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -16,9 +17,11 @@ public class Scanner implements Iterator<Token> {
     private int charPos;    // character offset on current line
 
     private String scan;    // current lexeme being scanned in
-    private int nextChar;   // contains the next char (-1 == EOF)
+    private int nextChar;   // contains the next char (-1 or 65535 == EOF)
 
     private boolean error;  // true if error is detected
+
+    private ArrayList<Character> invalidCharacters = new ArrayList<>();
 
     // reader will be a FileReader over the source file
     public Scanner (Reader reader) {
@@ -29,7 +32,13 @@ public class Scanner implements Iterator<Token> {
         scan = "";
         nextChar = ' ';
         error = false;
-
+        invalidCharacters.add('$');
+        invalidCharacters.add('#');
+        invalidCharacters.add('~');
+        invalidCharacters.add('&');
+        invalidCharacters.add(':');
+        invalidCharacters.add('~');
+        invalidCharacters.add('@');
     }
 
     // signal an error message
@@ -75,7 +84,7 @@ public class Scanner implements Iterator<Token> {
         } catch (IOException e) {
             System.err.println("Error reading character at Line:" + lineNum + "Pos: " + charPos);
         }
-        return -1;
+        return 65535;
     }
 
     /*
@@ -106,7 +115,7 @@ public class Scanner implements Iterator<Token> {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        if (nextChar == -1) {
+        if (nextChar == 65535) {
             try {
                 closed = true;
                 input.close();
@@ -120,7 +129,7 @@ public class Scanner implements Iterator<Token> {
         for(;;) {
             nextChar = (char)readChar();
             if (nextChar == ' ' || nextChar == '\t') continue;
-            else if (nextChar == '\n') continue;
+            else if (nextChar == '\n' || nextChar == '\r') continue;
             else if (nextChar == '/') {
                 try {
                     input.mark(1);
@@ -139,7 +148,24 @@ public class Scanner implements Iterator<Token> {
             else break;
         }
 
+//        if (nextChar == 65535) {
+//            try {
+//                closed = true;
+//                input.close();
+//                scan = "";
+//                return Token.EOF(lineNum, charPos);
+//            } catch (IOException e) {
+//                System.err.println("Error closing the file");
+//            }
+//        }
+
         if (error) {
+            error = false;
+//            if(nextChar == 65535) {
+//                closed = true;
+//
+//            }
+            //scan ="";
             return Token.ERROR(lineNum,charPos);
         }
 
@@ -171,7 +197,7 @@ public class Scanner implements Iterator<Token> {
             do {
                 scan += (char)nextChar;
                 nextChar = readChar();
-            } while (Character.isLetterOrDigit(nextChar));
+            } while (Character.isLetterOrDigit(nextChar) || nextChar == '_');
             try {
                 input.reset();
             } catch(IOException e) {
@@ -186,16 +212,16 @@ public class Scanner implements Iterator<Token> {
             } else return tok;
 
         }
-//        if (nextChar == -1) {
-//            try {
-//                closed = true;
-//                input.close();
-//                scan = "";
-//                return Token.EOF(lineNum, charPos);
-//            } catch (IOException e) {
-//                System.err.println("Error closing the file");
-//            }
-//        }
+        if (nextChar == 65535) {
+            try {
+                closed = true;
+                input.close();
+                scan = "";
+                return Token.EOF(lineNum, charPos);
+            } catch (IOException e) {
+                System.err.println("Error closing the file");
+            }
+        }
 
         scan += (char)nextChar;
 
@@ -249,9 +275,10 @@ public class Scanner implements Iterator<Token> {
                     charPos = 0;
                     lineNum++;
                 }
+                // needs to be -1 instead of 65535
                 if (checkChar == -1) {
                     error = true;
-                    return -1;
+                    return 65535;
                 }
             }
             checkChar = input.read();
@@ -263,7 +290,7 @@ public class Scanner implements Iterator<Token> {
         } catch (IOException e) {
             System.err.println("Error Skipping Block Comment");
         }
-        return -1;
+        return 65535;
     }
 
     /* called with knowledge that next token should be a number
@@ -283,11 +310,16 @@ public class Scanner implements Iterator<Token> {
             v = 0;
             nextChar = readChar();
             if (!Character.isDigit(nextChar)) {
+                // while loop groups errors where invalid characters follow an unfinished float
+                while(invalidCharacters.contains((char)nextChar)) {
+                    nextChar = readChar();
+                }
                 try {
                     input.reset();
                 } catch (IOException e) {
                     System.out.println("Error resetting input");
                 }
+                scan = "";
                 return Token.ERROR(lineNum, charPos);
             }
             do {
