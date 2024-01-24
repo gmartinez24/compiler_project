@@ -87,7 +87,8 @@ public class Scanner implements Iterator<Token> {
         // TODO: implement
 //        System.out.println("Next Char: " + (char)nextChar + " Closed: " + closed);
 //        System.out.println("LineNum: " + lineNum + " Char Pos: " + charPos);
-        return nextChar != -1 && !closed;
+//        return nextChar != 65535 && !closed;
+        return !closed;
     }
 
     /*
@@ -105,7 +106,7 @@ public class Scanner implements Iterator<Token> {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        if (nextChar == 65535) {
+        if (nextChar == -1) {
             try {
                 closed = true;
                 input.close();
@@ -185,16 +186,16 @@ public class Scanner implements Iterator<Token> {
             } else return tok;
 
         }
-        if (nextChar == 65535) {
-            try {
-                closed = true;
-                input.close();
-                scan = "";
-                return Token.EOF(lineNum, charPos);
-            } catch (IOException e) {
-                System.err.println("Error closing the file");
-            }
-        }
+//        if (nextChar == -1) {
+//            try {
+//                closed = true;
+//                input.close();
+//                scan = "";
+//                return Token.EOF(lineNum, charPos);
+//            } catch (IOException e) {
+//                System.err.println("Error closing the file");
+//            }
+//        }
 
         scan += (char)nextChar;
 
