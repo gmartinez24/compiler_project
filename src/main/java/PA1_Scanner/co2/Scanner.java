@@ -281,10 +281,12 @@ public class Scanner implements Iterator<Token> {
                     return 65535;
                 }
             }
+            input.mark(1);
             checkChar = input.read();
             if (checkChar == '/') {
                 return input.read();
             } else {
+                input.reset();
                 return skipBlockComment();
             }
         } catch (IOException e) {
