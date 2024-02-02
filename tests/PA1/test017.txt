@@ -1,7 +1,0 @@
-// Devan Shea
-// Testing to see if the scanner properly assigns tokens to lexemes with similar
-// prefixes to keywords
-
-if (iff and trueth == true) {
-    falsed = false;
-}

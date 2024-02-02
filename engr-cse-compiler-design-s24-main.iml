@@ -3,6 +3,7 @@
   <component name="AdditionalModuleElements">
     <content url="file://$MODULE_DIR$" dumb="true">
       <sourceFolder url="file://$MODULE_DIR$/src/main/java/PA1_Scanner" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java/PA2_Parser" isTestSource="false" />
     </content>
   </component>
 </module>

@@ -1,8 +1,0 @@
-// Arvind Murthy
-// Testing whitespace examples given in project description
-= ==
-====
-/ /
-mainif
-main if
-abc def

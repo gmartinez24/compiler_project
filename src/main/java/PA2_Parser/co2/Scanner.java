@@ -112,6 +112,8 @@ public class Scanner implements Iterator<Token> {
     // TODO: Add in ERROR recogniition (opposite of maximal munch implementation at bottom)
     @Override
     public Token next () {
+        // instantiates nextChar
+        nextChar=' ';
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
@@ -311,6 +313,11 @@ public class Scanner implements Iterator<Token> {
             scan += v.toString() + '.';
             v = 0;
             nextChar = readChar();
+//            int tempChar = readChar();
+//            if (nextChar == '0' && Character.isDigit(tempChar)) {
+//                // TODO: ISSUE
+//                scan += '0';
+//            }
             if (!Character.isDigit(nextChar)) {
                 // while loop groups errors where invalid characters follow an unfinished float
                 while(invalidCharacters.contains((char)nextChar)) {
@@ -324,12 +331,17 @@ public class Scanner implements Iterator<Token> {
                 scan = "";
                 return Token.ERROR(lineNum, charPos);
             }
+
             do {
-                v = 10 * v + (Character.digit(nextChar, 10));
+                // does handle leading zeros
+               // v = 10 * v + (Character.digit(nextChar, 10));
+                scan += Character.toString(nextChar);
                 nextChar = readChar();
             } while (Character.isDigit(nextChar));
+        } else {
+            scan+=v.toString();
         }
-        scan+=v.toString();
+
         try {
             input.reset();
         } catch(IOException e) {
