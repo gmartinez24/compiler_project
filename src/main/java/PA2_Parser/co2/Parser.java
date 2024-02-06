@@ -211,10 +211,18 @@ public class Parser {
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private void computation () {
-        
+
         expect(Token.Kind.MAIN);
 
-        // deal with varDecl
+        // deal with varDecl 0 or many
+        while (have(NonTerminal.VAR_DECL)) {
+            varDecl();
+        }
+
+        // deal with funcDecl 0 or many
+        while (have(NonTerminal.FUNC_DECL)) {
+            funcDecl();
+        }
 
         expect(Token.Kind.OPEN_BRACE);
         statSeq();
@@ -222,7 +230,77 @@ public class Parser {
         expect(Token.Kind.PERIOD);
     }
 
+    // varDecl = typeDecl ident {"," ident} ";"
+    private void varDecl() {
+        typeDecl();
+        do  {
+            expect(Token.Kind.IDENT);
+        } while(accept(Token.Kind.COMMA));
+        expect(Token.Kind.SEMICOLON);
+    }
+
+    // typeDecl = type  { "[" integerLit "]" }
+    private void typeDecl() {
+        if (accept(Token.Kind.INT) | accept(Token.Kind.BOOL) | accept(Token.Kind.FLOAT)) {
+            while (accept(Token.Kind.OPEN_BRACKET)) {
+                expect(Token.Kind.INT_VAL);
+                expect(Token.Kind.CLOSE_BRACKET);
+            }
+        } else {
+            // may need to change this to reflect something other than expecting INT
+            expect(Token.Kind.INT);
+        }
+
+
+    }
+
+    // funcDecl = "function" ident formalParam ":" ("void" | type ) funcBody
+    private void funcDecl() {
+        expect(Token.Kind.FUNC);
+        expect(Token.Kind.IDENT);
+        formalParam();
+        expect(Token.Kind.COLON);
+
+        // searches for either a VOID or a TYPE
+        if (accept(Token.Kind.VOID) | accept(Token.Kind.INT) | accept(Token.Kind.BOOL) | accept(Token.Kind.FLOAT)) {
+            return;
+        } else {
+            // may need to change this to reflect something other than expecting VOID
+            expect(Token.Kind.VOID);
+        }
+
+        funcBody();
+    }
+
+    // formalParam = "(" [paramDecl { "," paramDecl}] ")"
+    private void formalParam() {
+        expect(Token.Kind.OPEN_PAREN);
+        if (have(NonTerminal.PARAM_DECL)){
+            do {
+                paramDecl();
+            } while(accept(Token.Kind.COMMA));
+        }
+
+    }
+
+    // funcBody = "{" {varDecl}  statSeq "}" ";"
+    private void funcBody() {
+        expect(Token.Kind.OPEN_BRACE);
+        while (have(NonTerminal.VAR_DECL)) {
+            varDecl();
+        }
+
+        statSeq();
+
+        expect(Token.Kind.CLOSE_BRACE);
+        expect(Token.Kind.SEMICOLON);
+    }
+
     private void statSeq() {
 
     }
+
+
+    private void paramDecl() {}
+
 }

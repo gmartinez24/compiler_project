@@ -1,0 +1,14 @@
+main
+
+int a, b;
+
+float c;
+
+bool d;
+
+int[4] x;
+
+{
+
+
+}.

@@ -137,6 +137,7 @@ public class Scanner implements Iterator<Token> {
                     input.mark(1);
                     int c = input.read();
                     input.reset();
+                    charPos--;
                     if (c == '*' || c == '/') {
                         continue;
                     } else {
@@ -183,6 +184,7 @@ public class Scanner implements Iterator<Token> {
                     return createNumberToken();
                 } else {
                     input.reset();
+                    charPos--;
                 }
             } catch (IOException e) {
                 System.out.println("Error reading from input");
@@ -202,6 +204,7 @@ public class Scanner implements Iterator<Token> {
             } while (Character.isLetterOrDigit(nextChar) || nextChar == '_');
             try {
                 input.reset();
+                charPos--;
             } catch(IOException e) {
                 System.out.println("Error resetting input");
             }
@@ -251,6 +254,7 @@ public class Scanner implements Iterator<Token> {
             // resets the BufferedReader pointer back one (needed it to be put 1 ahead to read 1 char ahead)
             nextChar = lexeme.charAt(lexeme.length()-1);
             input.reset();
+            charPos--;
         } catch( IOException e) {
             System.err.println("Error resetting BufferedReader");
         }
@@ -285,10 +289,13 @@ public class Scanner implements Iterator<Token> {
             }
             input.mark(1);
             checkChar = input.read();
+            charPos++;
             if (checkChar == '/') {
+                charPos++;
                 return input.read();
             } else {
                 input.reset();
+                charPos--;
                 return skipBlockComment();
             }
         } catch (IOException e) {
@@ -324,6 +331,7 @@ public class Scanner implements Iterator<Token> {
                     nextChar = readChar();
                 }
                 try {
+                    charPos--;
                     input.reset();
                 } catch (IOException e) {
                     System.out.println("Error resetting input");
@@ -343,6 +351,7 @@ public class Scanner implements Iterator<Token> {
         }
 
         try {
+            charPos--;
             input.reset();
         } catch(IOException e) {
             System.out.println("Error resetting input");
