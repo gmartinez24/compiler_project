@@ -1,3 +1,6 @@
+// Isuranga Perera
+// Handle erroneous function call
+
 main
 
 int a;

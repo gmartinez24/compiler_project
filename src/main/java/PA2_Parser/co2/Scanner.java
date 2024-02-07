@@ -71,8 +71,11 @@ public class Scanner implements Iterator<Token> {
             // ignore inline comments
             if (c == '/' && nextChar == '/') {
                 input.readLine();
-                c = (char)input.read();
-                lineNum++;
+
+                do  {
+                    c = (char)input.read();
+                    lineNum++;
+                } while (c == '\n');
                 charPos = 2;
             }
 
