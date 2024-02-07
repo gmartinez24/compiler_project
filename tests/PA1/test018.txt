@@ -1,0 +1,4 @@
+// Parth Kumar
+// Testing float scanning, targetting those that split and tested both sides of "." with validInt.
+
+float test_neg_float = -3.-1;

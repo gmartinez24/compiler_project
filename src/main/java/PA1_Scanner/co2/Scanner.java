@@ -28,7 +28,7 @@ public class Scanner implements Iterator<Token> {
         input = new BufferedReader(reader);
         closed = false;
         lineNum = 1;
-        charPos = 0;
+        charPos = 1;
         scan = "";
         nextChar = ' ';
         error = false;
@@ -65,7 +65,7 @@ public class Scanner implements Iterator<Token> {
             charPos++;
             if (c == '\n') {
                 lineNum++;
-                charPos = 0;
+                charPos = 1;
             }
 
             // ignore inline comments
@@ -73,7 +73,7 @@ public class Scanner implements Iterator<Token> {
                 input.readLine();
                 c = (char)input.read();
                 lineNum++;
-                charPos = 0;
+                charPos = 2;
             }
 
             // ignore block comments
@@ -137,7 +137,6 @@ public class Scanner implements Iterator<Token> {
                     input.mark(1);
                     int c = input.read();
                     input.reset();
-                    charPos--;
                     if (c == '*' || c == '/') {
                         continue;
                     } else {
@@ -181,7 +180,7 @@ public class Scanner implements Iterator<Token> {
                     //input.reset();
                     scan += (char)nextChar;
                     nextChar = c;
-                    return createNumberToken();
+                    return createNumberToken(lineNum, charPos-2);
                 } else {
                     input.reset();
                     charPos--;
@@ -193,14 +192,20 @@ public class Scanner implements Iterator<Token> {
         }
 
         if (Character.isDigit(nextChar)) {
-            return createNumberToken();
+            return createNumberToken(lineNum, charPos -1);
         }
 
         // if nextChar is a letter (Modified from Dragon 2.31)
         if (Character.isLetter(nextChar)) {
             do {
                 scan += (char)nextChar;
+                int prevCharPos = charPos;
                 nextChar = readChar();
+
+                if (nextChar == '\n') {
+                    charPos = prevCharPos + 1;
+                    lineNum--;
+                }
             } while (Character.isLetterOrDigit(nextChar) || nextChar == '_');
             try {
                 input.reset();
@@ -211,9 +216,9 @@ public class Scanner implements Iterator<Token> {
 
             String lexeme = scan;
             scan = "";
-            Token tok = new Token(lexeme, lineNum, charPos);
+            Token tok = new Token(lexeme, lineNum, charPos-lexeme.length());
             if (tok.is(Token.Kind.ERROR)) {
-                return Token.IDENT(lexeme, lineNum, charPos);
+                return Token.IDENT(lexeme, lineNum, charPos-lexeme.length());
             } else return tok;
 
         }
@@ -238,16 +243,23 @@ public class Scanner implements Iterator<Token> {
             scan+= (char)nextChar;
             tok = new Token(scan ,lineNum, charPos);
         }
+
         while (!tok.is(Token.Kind.ERROR)) {
             lexeme = scan;
+            int prevCharPos = charPos;
             nextChar = readChar();
+            if (nextChar == '\n') {
+                charPos = prevCharPos + 1;
+                lineNum--;
+            }
             scan += (char)nextChar;
             tok = new Token(scan ,lineNum, charPos);
         }
         // tok generated ERROR token on instantiation
         if (lexeme.equals("")) {
+            int errorPosition = charPos - scan.length();
             scan = "";
-            return Token.ERROR(lineNum, charPos);
+            return Token.ERROR(lineNum, errorPosition);
         }
         scan = "";
         try {
@@ -258,7 +270,7 @@ public class Scanner implements Iterator<Token> {
         } catch( IOException e) {
             System.err.println("Error resetting BufferedReader");
         }
-        return new Token (lexeme, lineNum, charPos);
+        return new Token (lexeme, lineNum, charPos-lexeme.length());
     }
 
     // OPTIONAL: add any additional helper or convenience methods
@@ -278,7 +290,7 @@ public class Scanner implements Iterator<Token> {
                 checkChar = input.read();
                 charPos++;
                 if (checkChar == '\n') {
-                    charPos = 0;
+                    charPos = 2;
                     lineNum++;
                 }
                 // needs to be -1 instead of 65535
@@ -309,7 +321,7 @@ public class Scanner implements Iterator<Token> {
      * Reads in the token and returns either an INT_VAL, FLOAT_VAL or ERROR
      *
     */
-    private Token createNumberToken() {
+    private Token createNumberToken(int errorLine, int errorPosition) {
         Integer v = 0;
         do {
             v = 10 * v + (Character.digit(nextChar, 10));
@@ -320,14 +332,11 @@ public class Scanner implements Iterator<Token> {
             scan += v.toString() + '.';
             v = 0;
             nextChar = readChar();
-//            int tempChar = readChar();
-//            if (nextChar == '0' && Character.isDigit(tempChar)) {
-//                // TODO: ISSUE
-//                scan += '0';
-//            }
+
             if (!Character.isDigit(nextChar)) {
                 // while loop groups errors where invalid characters follow an unfinished float
                 while(invalidCharacters.contains((char)nextChar)) {
+                    scan += nextChar;
                     nextChar = readChar();
                 }
                 try {
@@ -336,8 +345,9 @@ public class Scanner implements Iterator<Token> {
                 } catch (IOException e) {
                     System.out.println("Error resetting input");
                 }
+
                 scan = "";
-                return Token.ERROR(lineNum, charPos);
+                return Token.ERROR(errorLine, errorPosition);
             }
 
             do {
@@ -360,9 +370,9 @@ public class Scanner implements Iterator<Token> {
         scan="";
         // determine whether to return float or int
         if (lexeme.contains(".")) {
-            return Token.FLOAT_VALUE(lexeme, lineNum, charPos);
+            return Token.FLOAT_VALUE(lexeme, lineNum, charPos-lexeme.length());
         }
-        return Token.INT_VALUE(lexeme, lineNum, charPos);
+        return Token.INT_VALUE(lexeme, lineNum, charPos-lexeme.length());
     }
 }
 

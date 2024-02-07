@@ -43,10 +43,10 @@ public class ScannerTester {
                 case INT_VAL:
                 case FLOAT_VAL:
                 case IDENT:
-                    System.out.println("\t" + t.lexeme());
+                    System.out.println("\t" + t.lexeme() + " line: " + t.lineNumber() + " char: " + t.charPosition());
                     break;
                 default:
-                    System.out.println();
+                    System.out.println(" line: " + t.lineNumber() + " char: " + t.charPosition());
                     break;
             }
         }
