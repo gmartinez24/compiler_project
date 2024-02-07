@@ -323,6 +323,7 @@ public class Parser {
 
     // statement = assign | funcCall | ifStat | whileStat | repeatStat | returnStat
     private void statement() {
+        // assign throws an error on erroneous function call (function call without "call" keyword)
         if (have(NonTerminal.ASSIGN)) {
             assign();
         }

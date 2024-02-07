@@ -1,0 +1,29 @@
+// Alex Garza
+// Incomplete relation in if statement
+
+main
+
+int a;
+float b;
+
+{
+   a = 22;
+   b = 22.2;
+
+   b = a;
+   
+   a++;
+
+   if (a == a % b * (12 + b)) then 
+        return;
+   fi;
+
+   if (b ==  ) then //should throw syntax error here
+        return;
+   fi;
+
+
+
+	
+	
+}.

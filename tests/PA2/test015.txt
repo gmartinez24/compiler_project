@@ -1,0 +1,16 @@
+// Haden Johnson
+// Testing parsing w/ comments
+
+main
+
+int a, b, c;
+
+{
+	// Code block 1
+	a = 4;
+	b = 5;
+	c = a + /*odd comment placement*/ b;
+	
+	// output result
+	call printInt(c);
+} /*comments should be ignored*/ . /*even after PERIOD*/

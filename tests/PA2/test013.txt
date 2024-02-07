@@ -1,0 +1,24 @@
+//Darwin Mohajeri
+// Testing for improper operations
+
+main
+
+int x, y, z;
+bool l;
+
+{
+    int x = 10;
+    int y = 100;
+    int z = 5;
+
+    call printInt(x);
+
+    x = *y; // Should be an error here
+
+    //Rest of the code shouldn't matter
+    x = z;
+    z = 10;
+    z ++;
+    call printInt(z);
+    call printInt(x);
+}.

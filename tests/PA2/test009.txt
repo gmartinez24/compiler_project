@@ -1,5 +1,6 @@
 // Grant Martinez
 // Proper Handling of While Statement
+// Should pass successfully
 
 main
 

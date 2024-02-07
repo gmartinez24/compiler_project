@@ -1,0 +1,25 @@
+// Spencer Banasik
+// Test for handling nested statements
+
+main
+
+int a;
+bool b;
+
+{
+    a = 0;
+    b = false; 
+
+    if (true != b) then
+        if (true) then
+            while(b != true) do
+                a = a + 1;
+                if(a == 10) then
+                    b = true;
+                fi;
+            od;
+        fi;
+    else
+        b = true;
+    fi;
+}.

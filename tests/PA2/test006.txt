@@ -1,14 +1,23 @@
+// Isuranga Perera
+// Handle erroneous function call
+
 main
 
-int a, b;
-
-float c;
-
-bool d;
-
-int[4] x;
+int a;
+int[2] arr;
 
 {
+    a = 55;
 
+    if (a >= 10) then
+        call println();
+    else
+        call println(53);
+    fi;
 
+    call foo();
+    call foo(90*50);
+    foo(); // Should throw an SyntaxError (missing "call" keyword)
+
+    arr[0] = 1;
 }.
