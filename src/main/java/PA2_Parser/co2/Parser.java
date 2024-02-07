@@ -202,7 +202,10 @@ public class Parser {
         int charPos = charPosition();
 
         Token ident = expectRetrieve(Token.Kind.IDENT);
-
+        while (accept(Token.Kind.OPEN_BRACKET)) {
+            relExpr();
+            accept(Token.Kind.CLOSE_BRACKET);
+        }
         // TODO: get designated value from appropriate map from IDENT to value
         
     }
@@ -241,7 +244,7 @@ public class Parser {
 
     // typeDecl = type  { "[" integerLit "]" }
     private void typeDecl() {
-        if (accept(Token.Kind.INT) | accept(Token.Kind.BOOL) | accept(Token.Kind.FLOAT)) {
+        if (accept(NonTerminal.TYPE_DECL)) {
             while (accept(Token.Kind.OPEN_BRACKET)) {
                 expect(Token.Kind.INT_VAL);
                 expect(Token.Kind.CLOSE_BRACKET);
@@ -262,11 +265,9 @@ public class Parser {
         expect(Token.Kind.COLON);
 
         // searches for either a VOID or a TYPE
-        if (accept(Token.Kind.VOID) | accept(Token.Kind.INT) | accept(Token.Kind.BOOL) | accept(Token.Kind.FLOAT)) {
-            return;
-        } else {
+        if (!(accept(Token.Kind.VOID) || accept(NonTerminal.TYPE_DECL))) {
             // may need to change this to reflect something other than expecting VOID
-            expect(Token.Kind.VOID);
+            expect(NonTerminal.FUNC_DECL);
         }
 
         funcBody();
@@ -280,7 +281,22 @@ public class Parser {
                 paramDecl();
             } while(accept(Token.Kind.COMMA));
         }
+        expect(Token.Kind.CLOSE_PAREN);
 
+    }
+
+    // paramDecl = paramType ident
+    private void paramDecl() {
+        paramType();
+        expect(Token.Kind.IDENT);
+    }
+
+    // paramType = type {"[" "]"}
+    private void paramType() {
+        expect(NonTerminal.TYPE_DECL);
+        while (accept(Token.Kind.OPEN_BRACKET)) {
+            expect(Token.Kind.CLOSE_BRACKET);
+        }
     }
 
     // funcBody = "{" {varDecl}  statSeq "}" ";"
@@ -296,11 +312,157 @@ public class Parser {
         expect(Token.Kind.SEMICOLON);
     }
 
+    // statSeq = statement ";" { statement ";" }
     private void statSeq() {
+        do{
+            statement();
+            expect(Token.Kind.SEMICOLON);
+        } while (have(NonTerminal.STATEMENT));
 
     }
 
+    // statement = assign | funcCall | ifStat | whileStat | repeatStat | returnStat
+    private void statement() {
+        if (have(NonTerminal.ASSIGN)) {
+            assign();
+        }
+        else if (have(NonTerminal.FUNC_CALL)) {
+            funcCall();
+        }
+        else if (have(NonTerminal.IF_STAT)) {
+            ifStat();
+        }
+        else if (have(NonTerminal.WHILE_STAT)) {
+            whileStat();
+        }
+        else if (have(NonTerminal.REPEAT_STAT)) {
+            repeatStat();
+        }
+        else if (have(NonTerminal.RETURN_STAT)) {
+            returnStat();
+        } else {
+            expect(NonTerminal.STATEMENT);
+        }
 
-    private void paramDecl() {}
+    }
+
+    // assign = designator ( ( assignOp relExpr ) | unaryOp )
+    private void assign() {
+       designator();
+        if (accept(NonTerminal.ASSIGN_OP)) {
+            relExpr();
+        } else if (accept(NonTerminal.UNARY_OP)) {
+            return;
+        } else {
+            expect(NonTerminal.ASSIGN);
+        }
+    }
+
+    // relExpr = addExpr { relOp addExpr }
+    private void relExpr () {
+        addExpr();
+        while (accept(NonTerminal.REL_OP)){
+            addExpr();
+        }
+    }
+
+    // addExpr = multExpr { addOp multExpr }
+    private void addExpr () {
+        multExpr();
+        while (accept(Token.Kind.ADD) || accept(Token.Kind.SUB) || accept(Token.Kind.OR)) {
+            multExpr();
+        }
+    }
+
+    // multExpr = powExpr { multOp powExpr }
+    private void multExpr() {
+        powExpr();
+        while (accept(Token.Kind.MUL) || accept(Token.Kind.DIV) || accept(Token.Kind.MOD) || accept(Token.Kind.AND)) {
+            powExpr();
+        }
+    }
+
+    // powExpr = groupExpr { powOp groupExpr }
+    private void powExpr () {
+        groupExpr();
+        while (accept(Token.Kind.POW)) {
+            groupExpr();
+        }
+    }
+
+    // groupExpr = literal | designator | "not" relExpr | relation | funcCall
+    private void groupExpr() {
+        if (accept(NonTerminal.LITERAL)) {
+            return;
+        } else if (have(NonTerminal.DESIGNATOR)) {
+            designator();
+        } else if (accept(Token.Kind.NOT)) {
+            relExpr();
+        } else if (have(Token.Kind.OPEN_PAREN)) {
+            relation();
+        } else if (have(NonTerminal.FUNC_CALL)){
+            funcCall();
+        }
+    }
+
+    // relation = "(" relExpr ")"
+    private void relation() {
+        expect(Token.Kind.OPEN_PAREN);
+        relExpr();
+        expect(Token.Kind.CLOSE_PAREN);
+    }
+
+    // funCall = "call" ident "(" [ relExpr { "," relExpr } ] ")"
+    private void funcCall() {
+        expect(Token.Kind.CALL);
+        expect(Token.Kind.IDENT);
+        expect(Token.Kind.OPEN_PAREN);
+        relExpr();
+        while (accept(Token.Kind.COMMA)) {
+            relExpr();
+        }
+        expect(Token.Kind.CLOSE_PAREN);
+    }
+
+    // ifStat = "if" relation "then" statSeq [ "else" statSeq ] "fi"
+    private void ifStat() {
+        expect(Token.Kind.IF);
+        relation();
+        expect(Token.Kind.THEN);
+        statSeq();
+        if (accept(Token.Kind.ELSE)) {
+            statSeq();;
+        }
+        expect(Token.Kind.FI);
+    }
+
+    // whileStat = "while" relation "do" statSeq "od"
+    private void whileStat () {
+        expect(Token.Kind.WHILE);
+        relation();
+        expect(Token.Kind.DO);
+        statSeq();
+        expect(Token.Kind.OD);
+    }
+
+    // repeatStat = "repeat" statSeq "until" relation
+    private void repeatStat () {
+        expect(Token.Kind.REPEAT);
+        statSeq();
+        expect(Token.Kind.UNTIL);
+        relation();
+    }
+
+    // returnStat = "return" [ relExpr ]
+    private void returnStat () {
+        expect(Token.Kind.RETURN);
+        relExpr();
+    }
+
+
+
+
+
+
 
 }

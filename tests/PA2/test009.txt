@@ -1,0 +1,20 @@
+// Grant Martinez
+// Proper Handling of While Statement
+
+main
+
+int ten;
+
+function testWhileLoop (int i, int n) : int
+{
+    while ( i < n ) do
+        i++;
+    od;
+
+    return i;
+};
+
+{
+    ten = call testWhileLoop(0, 10);
+    call printInt(ten);
+}.
