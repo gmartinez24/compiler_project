@@ -7,6 +7,7 @@ int x, y, z;
 bool l;
 
 {
+    // cannot have varDecl inside main scope
     int x = 10;
     int y = 100;
     int z = 5;

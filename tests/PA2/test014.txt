@@ -3,6 +3,7 @@
 // identifier named type
 
 main
+// errors... assignment outside of main scope / in declarations
 bool trues = true;
 int type = -10;
 
@@ -11,7 +12,7 @@ function mainif (int three, bool fasle) : void {
         return 0;
    fi;
     call mainif(type, trues );
-}
+} // error missing semicolon here
 
 { 
     return trues;

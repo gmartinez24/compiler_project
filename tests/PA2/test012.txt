@@ -16,11 +16,11 @@ int x, y, z;
             call println();
             while (y < z) do
                 y++;
-                printInt(y);
+                printInt(y); //throws error becuase missing call
             od;
             x++;
             y /= 2;
             z += 5;
         until (x > 10);
-    fi.
+    fi. // throws error because . not ;
 }.

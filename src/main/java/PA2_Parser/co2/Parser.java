@@ -361,6 +361,10 @@ public class Parser {
 
     // relExpr = addExpr { relOp addExpr }
     private void relExpr () {
+        // for empty return statements
+        if(have(Token.Kind.SEMICOLON) || have(Token.Kind.CLOSE_PAREN)){
+            return;
+        }
         addExpr();
         while (accept(NonTerminal.REL_OP)){
             addExpr();
@@ -403,6 +407,8 @@ public class Parser {
             relation();
         } else if (have(NonTerminal.FUNC_CALL)){
             funcCall();
+        } else {
+            expect(NonTerminal.DESIGNATOR);
         }
     }
 
@@ -432,7 +438,7 @@ public class Parser {
         expect(Token.Kind.THEN);
         statSeq();
         if (accept(Token.Kind.ELSE)) {
-            statSeq();;
+            statSeq();
         }
         expect(Token.Kind.FI);
     }
