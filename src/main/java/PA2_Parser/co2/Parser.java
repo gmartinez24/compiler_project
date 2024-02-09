@@ -236,7 +236,7 @@ public class Parser {
     // varDecl = typeDecl ident {"," ident} ";"
     private void varDecl() {
         typeDecl();
-        do  {
+        do {
             expect(Token.Kind.IDENT);
         } while(accept(Token.Kind.COMMA));
         expect(Token.Kind.SEMICOLON);
@@ -244,15 +244,15 @@ public class Parser {
 
     // typeDecl = type  { "[" integerLit "]" }
     private void typeDecl() {
-        if (accept(NonTerminal.TYPE_DECL)) {
-            while (accept(Token.Kind.OPEN_BRACKET)) {
-                expect(Token.Kind.INT_VAL);
-                expect(Token.Kind.CLOSE_BRACKET);
-            }
-        } else {
-            // may need to change this to reflect something other than expecting INT
-            expect(Token.Kind.INT);
+        expect(NonTerminal.TYPE_DECL);
+        while (accept(Token.Kind.OPEN_BRACKET)) {
+            expect(Token.Kind.INT_VAL);
+            expect(Token.Kind.CLOSE_BRACKET);
         }
+//        } else {
+//            // may need to change this to reflect something other than expecting INT
+//            expect(Token.Kind.INT);
+//        }
 
 
     }
@@ -316,7 +316,7 @@ public class Parser {
     private void statSeq() {
         do{
             statement();
-            expect(Token.Kind.SEMICOLON);
+            accept(Token.Kind.SEMICOLON);
         } while (have(NonTerminal.STATEMENT));
 
     }
@@ -408,7 +408,7 @@ public class Parser {
         } else if (have(NonTerminal.FUNC_CALL)){
             funcCall();
         } else {
-            expect(NonTerminal.DESIGNATOR);
+            expect(NonTerminal.GROUP_EXPR);
         }
     }
 

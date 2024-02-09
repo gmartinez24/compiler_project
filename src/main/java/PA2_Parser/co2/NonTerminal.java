@@ -66,6 +66,20 @@ public enum NonTerminal {
     }),
 
     // TODO: expression-related nonterminals
+    GROUP_EXPR(new HashSet<Token.Kind>() {
+        private static final long serialVersionUID = 1L;
+        {
+            add(Token.Kind.IDENT);
+            add(Token.Kind.TRUE);
+            add(Token.Kind.FALSE);
+            add(Token.Kind.INT_VAL);
+            add(Token.Kind.FLOAT_VAL);
+            add(Token.Kind.NOT);
+            add(Token.Kind.OPEN_PAREN);
+            add(Token.Kind.CALL);
+
+        }
+    }),
 
     // statements
     ASSIGN(new HashSet<Token.Kind>() {
