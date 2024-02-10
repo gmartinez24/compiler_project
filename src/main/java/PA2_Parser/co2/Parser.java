@@ -316,7 +316,7 @@ public class Parser {
     private void statSeq() {
         do{
             statement();
-            accept(Token.Kind.SEMICOLON);
+            expect(Token.Kind.SEMICOLON);
         } while (have(NonTerminal.STATEMENT));
 
     }
@@ -398,14 +398,19 @@ public class Parser {
     // groupExpr = literal | designator | "not" relExpr | relation | funcCall
     private void groupExpr() {
         if (accept(NonTerminal.LITERAL)) {
+            //System.out.println("lit" + lineNumber());
             return;
         } else if (have(NonTerminal.DESIGNATOR)) {
+           // System.out.println("des" + lineNumber());
             designator();
         } else if (accept(Token.Kind.NOT)) {
+           // System.out.println("relExp" + lineNumber());
             relExpr();
         } else if (have(Token.Kind.OPEN_PAREN)) {
+            //System.out.println("realtion" + lineNumber());
             relation();
         } else if (have(NonTerminal.FUNC_CALL)){
+            //System.out.println("call" + lineNumber());
             funcCall();
         } else {
             expect(NonTerminal.GROUP_EXPR);

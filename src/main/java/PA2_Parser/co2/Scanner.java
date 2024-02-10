@@ -21,6 +21,8 @@ public class Scanner implements Iterator<Token> {
 
     private boolean error;  // true if error is detected
 
+    private boolean prevNum;
+
     private ArrayList<Character> invalidCharacters = new ArrayList<>();
 
     // reader will be a FileReader over the source file
@@ -39,6 +41,7 @@ public class Scanner implements Iterator<Token> {
         invalidCharacters.add(':');
         invalidCharacters.add('~');
         invalidCharacters.add('@');
+        prevNum = false;
     }
 
     // signal an error message
@@ -125,6 +128,7 @@ public class Scanner implements Iterator<Token> {
                 closed = true;
                 input.close();
                 scan = "";
+                prevNum = false;
                 return Token.EOF(lineNum, charPos);
             } catch (IOException e) {
                 System.err.println("Error closing the file");
@@ -171,6 +175,7 @@ public class Scanner implements Iterator<Token> {
 //
 //            }
             //scan ="";
+            prevNum = false;
             return Token.ERROR(lineNum,charPos);
         }
 
@@ -180,9 +185,15 @@ public class Scanner implements Iterator<Token> {
             try {
                 int c = readChar();
                 if (Character.isDigit(c)) {
+                    if (prevNum == true) {
+                        input.reset();
+                        prevNum = false;
+                        return new Token("-", lineNum, charPos-1);
+                    }
                     //input.reset();
                     scan += (char)nextChar;
                     nextChar = c;
+                    prevNum = true;
                     return createNumberToken(lineNum, charPos-2);
                 } else {
                     input.reset();
@@ -195,6 +206,7 @@ public class Scanner implements Iterator<Token> {
         }
 
         if (Character.isDigit(nextChar)) {
+            prevNum = true;
             return createNumberToken(lineNum, charPos -1);
         }
 
@@ -221,6 +233,7 @@ public class Scanner implements Iterator<Token> {
             scan = "";
             Token tok = new Token(lexeme, lineNum, charPos-lexeme.length());
             if (tok.is(Token.Kind.ERROR)) {
+                prevNum = false;
                 return Token.IDENT(lexeme, lineNum, charPos-lexeme.length());
             } else return tok;
 
@@ -230,6 +243,7 @@ public class Scanner implements Iterator<Token> {
                 closed = true;
                 input.close();
                 scan = "";
+                prevNum = false;
                 return Token.EOF(lineNum, charPos);
             } catch (IOException e) {
                 System.err.println("Error closing the file");
@@ -262,6 +276,7 @@ public class Scanner implements Iterator<Token> {
         if (lexeme.equals("")) {
             int errorPosition = charPos - scan.length();
             scan = "";
+            prevNum=false;
             return Token.ERROR(lineNum, errorPosition);
         }
         scan = "";
@@ -273,6 +288,7 @@ public class Scanner implements Iterator<Token> {
         } catch( IOException e) {
             System.err.println("Error resetting BufferedReader");
         }
+        prevNum = false;
         return new Token (lexeme, lineNum, charPos-lexeme.length());
     }
 
