@@ -1,0 +1,25 @@
+// Grant Martinez
+// test printing return of function call
+
+main
+
+int a;
+int b;
+
+function maxInt (int x, int y) : int
+{
+    if (x > y) then
+        return x;
+    else
+        return y;
+    fi;
+};
+
+
+{
+    a = call readInt(); // 20
+    b = call readInt(); // 63
+    call println();
+    call printInt(call maxInt(a,b)); // should be 63
+
+}.
