@@ -55,4 +55,9 @@ public class TypeChecker implements NodeVisitor {
     public void visit (Computation node) {
         throw new RuntimeException("implement visit (Computation)");
     }
+
+    public boolean check(AST ast){
+        // TODO -> Write function
+        return false;
+    }
 }

@@ -4,7 +4,7 @@ public class AST {
 
     // TODO: Create AST structure of your choice
     public AST() {
-        throw new RuntimeException("implement AST");
+        Node Root = parser.Parse;throw new RuntimeException("implement AST");
     }
 
     public String printPreOrder(){

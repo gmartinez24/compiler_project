@@ -8,6 +8,7 @@ import java.util.NoSuchElementException;
 
 import ast.AST;
 import ast.Computation;
+import ast.DeclerationList;
 
 public class Compiler {
 
@@ -231,10 +232,10 @@ public class Compiler {
     private void computation () {
 
         expect(Token.Kind.MAIN);
-
+        DeclerationList decList;
         // deal with varDecl 0 or many
         while (have(NonTerminal.VAR_DECL)) {
-            varDecl();
+            decList.insert(varDecl());
         }
 
         // deal with funcDecl 0 or many
