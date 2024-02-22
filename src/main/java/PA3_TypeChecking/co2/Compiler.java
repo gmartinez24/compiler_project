@@ -68,7 +68,9 @@ public class Compiler {
 
     //TODO
     public ast.AST genAST() {
-        return new ast.AST();
+        // the computation function returns an instance of computation to pass
+        // to constructor of AST as root node
+        return new ast.AST(computation());
     }
     
     public void interpret() {
@@ -229,7 +231,7 @@ public class Compiler {
 
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
-    private void computation () {
+    private ast.Computation computation () {
 
         expect(Token.Kind.MAIN);
         DeclerationList decList;
@@ -247,6 +249,8 @@ public class Compiler {
         statSeq();
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.PERIOD);
+
+        return new Computation();
     }
 
     // varDecl = typeDecl ident {"," ident} ";"
