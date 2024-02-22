@@ -2,7 +2,7 @@ package ast;
 
 
 
-public abstract class Node implements Visitable {
+public class Node implements Visitable {
 
     private int lineNum;
     private int charPos;

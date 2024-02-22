@@ -23,6 +23,7 @@ public class AST {
     public String printPreOrder(){
         // For your testing
         // TODO: Return the pre order traversal of AST. Use "\n" as separator.
+        // TODO: Uses PrettyPrinter class with visit() function
         // Use the enum ASTNonTerminal provided for naming convention.
         throw new RuntimeException("implement printPreOrder function");
     }

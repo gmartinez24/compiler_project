@@ -34,6 +34,8 @@ public class Computation extends Node {
         return mainSeq;
     }
 
+    // Each object accepts a visitor
+    // this function is used to determine which visit() function should be used
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);

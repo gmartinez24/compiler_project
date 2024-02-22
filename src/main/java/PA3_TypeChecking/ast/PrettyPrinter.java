@@ -18,6 +18,10 @@ public class PrettyPrinter implements NodeVisitor {
         return sb.toString();
     }
 
+
+    // TODO: implement visit functions from NodeVisitor in here
+    // Each visit calls the accept function on that object which
+    // then calls the correct visit function
     @Override
     public void visit (StatementSequence node) {
         println(node, "");
