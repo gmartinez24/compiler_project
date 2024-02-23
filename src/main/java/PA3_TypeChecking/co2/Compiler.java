@@ -215,16 +215,24 @@ public class Compiler {
 
 
     // designator = ident { "[" relExpr "]" }
-    private void designator () {
+    // unsure of how to implement this. what to return here
+    // see that ArrayIndex would be used here, but how to return identifier?
+    private Expression designator () {
         int lineNum = lineNumber();
         int charPos = charPosition();
 
-        Token ident = expectRetrieve(Token.Kind.IDENT);
+        String ident = expectRetrieve(Token.Kind.IDENT).lexeme();
+        boolean array = false;
+        List<Expression> exps = new ArrayList<>();
         while (accept(Token.Kind.OPEN_BRACKET)) {
-            relExpr();
+            array = true;
+            exps.add(relExpr());
             accept(Token.Kind.CLOSE_BRACKET);
         }
-
+        if (array) {
+            return ArrayIndex(lineNum, charPos, ident, exps);
+        }
+            return ;
     }
 
 
@@ -288,7 +296,13 @@ public class Compiler {
         Token func = expectRetrieve(Token.Kind.FUNC);
         String name = expectRetrieve(Token.Kind.IDENT).lexeme();
         String type = "TypeList(";
-        type += formalParam() + ")->"+ currentToken.lexeme();
+        List<Symbol> params= formalParam();
+        for (Symbol param : params) {
+            type += param.type()+ ", ";
+        }
+        // remove last comma and space
+        type = type.substring(0, type.length() - 2);
+        //type += formalParam() + ")->"+ currentToken.lexeme();
         expect(Token.Kind.COLON);
 
         // searches for either a VOID or a TYPE
@@ -298,29 +312,31 @@ public class Compiler {
         }
 
         FunctionBody functionBody = funcBody();
-        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), type, name, functionBody);
+        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), type, name, params, functionBody);
     }
 
     // formalParam = "(" [paramDecl { "," paramDecl}] ")"
-    private String formalParam() {
-        String params = "";
+    private List<Symbol> formalParam() {
+//        String params = "";
+        List<Symbol> params = new ArrayList<>();
         expect(Token.Kind.OPEN_PAREN);
         if (have(NonTerminal.PARAM_DECL)){
             do {
-                params += paramDecl() + " ";
-
+//                params += paramDecl() + " ";
+                params.add(paramDecl());
             } while(accept(Token.Kind.COMMA));
-            params = params.substring(0, params.length() - 1);
+//            params = params.substring(0, params.length() - 1);
         }
         expect(Token.Kind.CLOSE_PAREN);
         return params;
     }
 
     // paramDecl = paramType ident
-    private String paramDecl() {
+    private Symbol paramDecl() {
         String paramType = paramType();
-        expect(Token.Kind.IDENT);
-        return paramType;
+        String paramName = expectRetrieve(Token.Kind.IDENT).lexeme();
+        Symbol param = new Symbol(paramType, paramName);
+        return param;
     }
 
     // paramType = type {"[" "]"}
@@ -334,47 +350,57 @@ public class Compiler {
     }
 
     // funcBody = "{" {varDecl}  statSeq "}" ";"
-    private void funcBody() {
+    private FunctionBody funcBody() {
         expect(Token.Kind.OPEN_BRACE);
-        while (have(NonTerminal.VAR_DECL)) {
-            varDecl();
+
+        DeclarationList varList = null;
+        int lineNum = currentToken.lineNumber();
+        int charPosition = currentToken.charPosition();
+        if (have(NonTerminal.VAR_DECL)) {
+            // deal with varDecl 0 or many
+            varList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
+            while (have(NonTerminal.VAR_DECL)) {
+                varDecl(varList);
+            }
         }
 
-        statSeq();
+        StatementSequence statementSequence = statSeq();
 
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.SEMICOLON);
+        return new FunctionBody(lineNum,charPosition,varList,statementSequence);
     }
 
     // statSeq = statement ";" { statement ";" }
     private StatementSequence statSeq() {
+        StatementSequence statementSequence = null;
         do{
-            statement();
+            statementSequence.addStatement(statement());
             expect(Token.Kind.SEMICOLON);
         } while (have(NonTerminal.STATEMENT));
-
+        return statementSequence;
     }
 
     // statement = assign | funcCall | ifStat | whileStat | repeatStat | returnStat
-    private void statement() {
+    private Statement statement() {
         // assign throws an error on erroneous function call (function call without "call" keyword)
         if (have(NonTerminal.ASSIGN)) {
-            assign();
+            return assign();
         }
         else if (have(NonTerminal.FUNC_CALL)) {
-            funcCall();
+            return funcCall();
         }
         else if (have(NonTerminal.IF_STAT)) {
-            ifStat();
+            return ifStat();
         }
         else if (have(NonTerminal.WHILE_STAT)) {
-            whileStat();
+            return whileStat();
         }
         else if (have(NonTerminal.REPEAT_STAT)) {
-            repeatStat();
+            return repeatStat();
         }
         else if (have(NonTerminal.RETURN_STAT)) {
-            returnStat();
+            return returnStat();
         } else {
             expect(NonTerminal.STATEMENT);
         }
@@ -382,22 +408,29 @@ public class Compiler {
     }
 
     // assign = designator ( ( assignOp relExpr ) | unaryOp )
-    private void assign() {
-        designator();
+    private Assignment assign() {
+        int lineNumber = currentToken.lineNumber();
+        int charPosition = currentToken.charPosition();
+        String leftSide = null;
+        Expression rightSide = null;
+        leftSide = designator();
         if (accept(NonTerminal.ASSIGN_OP)) {
-            relExpr();
-        } else if (accept(NonTerminal.UNARY_OP)) {
-            return;
+            Expression rightSide = relExpr();
+            return new Assignment(lineNumber, charPosition, leftSide, rightSide);
+        } else if (have(NonTerminal.UNARY_OP)) {
+            String unaryOP = expectRetrieve(NonTerminal.UNARY_OP).lexeme();
+            return new Assignment(lineNumber, charPosition, leftSide, unaryOP);
         } else {
             expect(NonTerminal.ASSIGN);
         }
+        return new Assignment(lineNumber, charPosition, leftSide, rightSide);
     }
 
     // relExpr = addExpr { relOp addExpr }
-    private void relExpr () {
+    private Expression relExpr () {
         // for empty return statements
         if(have(Token.Kind.SEMICOLON) || have(Token.Kind.CLOSE_PAREN)){
-            return;
+            return null;
         }
         addExpr();
         while (accept(NonTerminal.REL_OP)){
@@ -414,48 +447,81 @@ public class Compiler {
     }
 
     // multExpr = powExpr { multOp powExpr }
-    private void multExpr() {
-        powExpr();
-        while (accept(Token.Kind.MUL) || accept(Token.Kind.DIV) || accept(Token.Kind.MOD) || accept(Token.Kind.AND)) {
+    // TODO: unfinished
+    private Expression multExpr() {
+        List<Expression> rightSide = new ArrayList<>();
+        Expression leftSide = powExpr();
+        while (have(Token.Kind.MUL) || have(Token.Kind.DIV) || have(Token.Kind.MOD) || have(Token.Kind.AND)) {
+            if (currentToken.is(Token.Kind.MUL)){
+
+            } else if (currentToken.is(Token.Kind.DIV)){
+
+            } else if (currentToken.is(Token.Kind.MOD)) {
+
+            } else if (currentToken.is(Token.Kind.AND)) {
+
+            }
             powExpr();
         }
+
+        return leftSide;
     }
 
     // powExpr = groupExpr { powOp groupExpr }
-    private void powExpr () {
-        groupExpr();
+    private Expression powExpr () {
+        //List<Expression> rightSide = new ArrayList<>();
+        Expression rightSide;
+        Expression leftSide = groupExpr();
         while (accept(Token.Kind.POW)) {
-            groupExpr();
+            ///rightSide.add(groupExpr());
+            rightSide = groupExpr();
+            leftSide = new Power(leftSide.lineNumber(), leftSide.charPosition, leftSide, rightSide);
         }
+//        if (!rightSide.isEmpty()) {
+//            return new Power(leftSide.lineNumber(), leftSide.charPosition, leftSide, rightSide);
+//        }
+        return leftSide;
     }
 
     // groupExpr = literal | designator | "not" relExpr | relation | funcCall
-    private void groupExpr() {
-        if (accept(NonTerminal.LITERAL)) {
+    private Expression groupExpr() {
+        if (have(NonTerminal.LITERAL)) {
+            Token tok = expectRetrieve(NonTerminal.LITERAL);
             //System.out.println("lit" + lineNumber());
-            return;
+            if (tok.is(Token.Kind.TRUE) || tok.is(Token.Kind.FALSE)){
+                return new BoolLiteral(tok.lineNumber(), tok.charPosition(), tok.lexeme());
+            }
+            if (tok.is(Token.Kind.INT_VAL)) {
+                return new IntegerLiteral(tok.lineNumber(), tok.charPosition(), tok.lexeme());
+            }
+            if (tok.is(Token.Kind.FLOAT_VAL)) {
+                return new FloatLiteral(tok.lineNumber(), tok.charPosition(), tok.lexeme());
+            }
         } else if (have(NonTerminal.DESIGNATOR)) {
             // System.out.println("des" + lineNumber());
-            designator();
-        } else if (accept(Token.Kind.NOT)) {
+            return designator();
+        } else if (have(Token.Kind.NOT)) {
             // System.out.println("relExp" + lineNumber());
-            relExpr();
+            Token tok = expectRetrieve(Token.Kind.NOT);
+            return LogicalNot(tok.lineNumber(), tok.charPosition(), relExpr());
+            //return relExpr();
         } else if (have(Token.Kind.OPEN_PAREN)) {
             //System.out.println("realtion" + lineNumber());
-            relation();
+            return relation();
         } else if (have(NonTerminal.FUNC_CALL)){
             //System.out.println("call" + lineNumber());
-            funcCall();
+            return funcCall();
         } else {
             expect(NonTerminal.GROUP_EXPR);
         }
     }
 
     // relation = "(" relExpr ")"
-    private void relation() {
+    private Relation relation() {
         expect(Token.Kind.OPEN_PAREN);
-        relExpr();
+        Relation relation = relExpr();
         expect(Token.Kind.CLOSE_PAREN);
+        return relation;
     }
 
     // funCall = "call" ident "(" [ relExpr { "," relExpr } ] ")"
