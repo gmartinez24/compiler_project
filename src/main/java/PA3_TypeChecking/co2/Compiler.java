@@ -4,9 +4,9 @@ package co2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
-import ast.Computation;
-import ast.DeclarationList;
+import ast.*;
 
 public class Compiler {
 
@@ -49,7 +49,7 @@ public class Compiler {
     }
 
     // Compiler ===================================================================
-    private co2.Scanner scanner;
+    private Scanner scanner;
     private Token currentToken;
 
     private int numDataRegisters; // available registers are [1..numDataRegisters]
@@ -65,10 +65,10 @@ public class Compiler {
     }
 
     //TODO
-    public ast.AST genAST() {
+    public AST genAST() {
         // the computation function returns an instance of computation to pass
         // to constructor of AST as root node
-        return new ast.AST(computation());
+        return new AST(computation());
     }
     
     public void interpret() {
@@ -229,61 +229,66 @@ public class Compiler {
 
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
-    private ast.Computation computation () {
+    private Computation computation () {
 
         Token main = expectRetrieve(Token.Kind.MAIN);
         Symbol mainSymbol = new Symbol("TypeList() -> void", "main");
+        DeclarationList varList = null;
+        DeclarationList funcList = null;
+        StatementSequence statementSequence;
+
         if (have(NonTerminal.VAR_DECL)) {
-            DeclarationList decList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
+            // deal with varDecl 0 or many
+            varList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
+            while (have(NonTerminal.VAR_DECL)) {
+                varDecl(varList);
+            }
         }
 
-        // deal with varDecl 0 or many
-        while (have(NonTerminal.VAR_DECL)) {
-            decList.addDeclaration(varDecl());
-        }
-
-        // deal with funcDecl 0 or many
-        while (have(NonTerminal.FUNC_DECL)) {
-            funcDecl();
+        if (have(NonTerminal.FUNC_DECL)) {
+            // deal with funcDecl 0 or many
+            funcList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
+            while (have(NonTerminal.FUNC_DECL)) {
+                funcList.addDeclaration(funcDecl());
+            }
         }
 
         expect(Token.Kind.OPEN_BRACE);
-        statSeq();
+        statementSequence = statSeq();
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.PERIOD);
 
-        return new Computation(main.lineNumber(), main.charPosition(), mainSymbol, decList);
+        return new Computation(main.lineNumber(), main.charPosition(), mainSymbol, varList, funcList, statementSequence);
     }
 
     // varDecl = typeDecl ident {"," ident} ";"
-    private void varDecl() {
-        typeDecl();
+    private void varDecl(DeclarationList varList) {
+        String type = typeDecl();
         do {
-            expect(Token.Kind.IDENT);
+            Token var = expectRetrieve(Token.Kind.IDENT);
+            varList.addDeclaration(new VariableDeclaration(var.lineNumber(), var.charPosition(), type, var.lexeme()));
         } while(accept(Token.Kind.COMMA));
         expect(Token.Kind.SEMICOLON);
     }
 
     // typeDecl = type  { "[" integerLit "]" }
-    private void typeDecl() {
-        expect(NonTerminal.TYPE_DECL);
+    private String typeDecl() {
+        String type = expectRetrieve(NonTerminal.TYPE_DECL).lexeme();
         while (accept(Token.Kind.OPEN_BRACKET)) {
-            expect(Token.Kind.INT_VAL);
+            type +="[";
+            type+=expectRetrieve(Token.Kind.INT_VAL).lexeme();
             expect(Token.Kind.CLOSE_BRACKET);
+            type+="]";
         }
-//        } else {
-//            // may need to change this to reflect something other than expecting INT
-//            expect(Token.Kind.INT);
-//        }
-
-
+        return type;
     }
 
     // funcDecl = "function" ident formalParam ":" ("void" | type ) funcBody
-    private void funcDecl() {
-        expect(Token.Kind.FUNC);
-        expect(Token.Kind.IDENT);
-        formalParam();
+    private FunctionDeclaration funcDecl() {
+        Token func = expectRetrieve(Token.Kind.FUNC);
+        String name = expectRetrieve(Token.Kind.IDENT).lexeme();
+        String type = "TypeList(";
+        type += formalParam() + ")->"+ currentToken.lexeme();
         expect(Token.Kind.COLON);
 
         // searches for either a VOID or a TYPE
@@ -292,33 +297,40 @@ public class Compiler {
             expect(NonTerminal.FUNC_DECL);
         }
 
-        funcBody();
+        FunctionBody functionBody = funcBody();
+        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), type, name, functionBody);
     }
 
     // formalParam = "(" [paramDecl { "," paramDecl}] ")"
-    private void formalParam() {
+    private String formalParam() {
+        String params = "";
         expect(Token.Kind.OPEN_PAREN);
         if (have(NonTerminal.PARAM_DECL)){
             do {
-                paramDecl();
+                params += paramDecl() + " ";
+
             } while(accept(Token.Kind.COMMA));
+            params = params.substring(0, params.length() - 1);
         }
         expect(Token.Kind.CLOSE_PAREN);
-
+        return params;
     }
 
     // paramDecl = paramType ident
-    private void paramDecl() {
-        paramType();
+    private String paramDecl() {
+        String paramType = paramType();
         expect(Token.Kind.IDENT);
+        return paramType;
     }
 
     // paramType = type {"[" "]"}
-    private void paramType() {
-        expect(NonTerminal.TYPE_DECL);
+    private String paramType() {
+        String paramType = expectRetrieve(NonTerminal.TYPE_DECL).lexeme();
         while (accept(Token.Kind.OPEN_BRACKET)) {
+            paramType+="[]";
             expect(Token.Kind.CLOSE_BRACKET);
         }
+        return paramType;
     }
 
     // funcBody = "{" {varDecl}  statSeq "}" ";"
@@ -335,7 +347,7 @@ public class Compiler {
     }
 
     // statSeq = statement ";" { statement ";" }
-    private void statSeq() {
+    private StatementSequence statSeq() {
         do{
             statement();
             expect(Token.Kind.SEMICOLON);

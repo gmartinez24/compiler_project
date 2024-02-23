@@ -19,7 +19,7 @@ public class Symbol {
     public String type() {return type;}
 
     public String toString() {
-        return "Symbol (" + name +":" + type +")";
+        return "(" + name +":" + type +")";
     }
 
 }
