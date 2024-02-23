@@ -41,4 +41,9 @@ public class Node implements Visitable {
     public static Expression newLiteral (Token tok) {
  
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+
+    }
 }

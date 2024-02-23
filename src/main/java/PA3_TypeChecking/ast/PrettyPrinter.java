@@ -34,7 +34,7 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit (VariableDeclaration node) {
-        println(node, "[" + node.symbol() + "]");
+        println(node, "[" + node.symbol().toString() + "]");
     }
 
     @Override

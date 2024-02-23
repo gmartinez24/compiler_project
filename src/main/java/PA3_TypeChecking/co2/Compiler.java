@@ -2,13 +2,11 @@ package co2;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import ast.AST;
 import ast.Computation;
-import ast.DeclerationList;
+import ast.DeclarationList;
 
 public class Compiler {
 
@@ -233,11 +231,15 @@ public class Compiler {
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private ast.Computation computation () {
 
-        expect(Token.Kind.MAIN);
-        DeclerationList decList;
+        Token main = expectRetrieve(Token.Kind.MAIN);
+        Symbol mainSymbol = new Symbol("TypeList() -> void", "main");
+        if (have(NonTerminal.VAR_DECL)) {
+            DeclarationList decList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
+        }
+
         // deal with varDecl 0 or many
         while (have(NonTerminal.VAR_DECL)) {
-            decList.insert(varDecl());
+            decList.addDeclaration(varDecl());
         }
 
         // deal with funcDecl 0 or many
@@ -250,7 +252,7 @@ public class Compiler {
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.PERIOD);
 
-        return new Computation();
+        return new Computation(main.lineNumber(), main.charPosition(), mainSymbol, decList);
     }
 
     // varDecl = typeDecl ident {"," ident} ";"
