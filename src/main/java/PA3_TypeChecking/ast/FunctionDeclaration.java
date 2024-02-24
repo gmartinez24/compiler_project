@@ -11,11 +11,14 @@ public class FunctionDeclaration extends Node implements Declaration{
 
     private List<Symbol> params;
 
+    private FunctionBody funcBody;
+
     public FunctionDeclaration(int lineNum, int charPos, String type, String ident, List<Symbol> params, FunctionBody funcBody){
         super(lineNum, charPos);
         this.type = type;
         this.ident = ident;
         this.params = params;
+        this.funcBody = funcBody;
     }
 
     public String function() {

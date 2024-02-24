@@ -100,23 +100,38 @@ public class Compiler {
     private SymbolTable symbolTable;
 
     private void initSymbolTable () {
-        throw new RuntimeException("implement initSymbolTable");
+        symbolTable = new SymbolTable();
+        //throw new RuntimeException("implement initSymbolTable");
     }
 
     private void enterScope () {
-        throw new RuntimeException("implement enterScope");
+        symbolTable.enterScope();
+        //throw new RuntimeException("implement enterScope");
     }
 
     private void exitScope () {
-        throw new RuntimeException("implement exitScope");
+        symbolTable.exitScope();
+        //throw new RuntimeException("implement exitScope");
     }
 
     private Symbol tryResolveVariable (Token ident) {
         //TODO: Try resolving variable, handle SymbolNotFoundError
+        try {
+            return symbolTable.lookup(ident.lexeme());
+        } catch(SymbolNotFoundError e) {
+            reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
+            return null;
+        }
     }
 
-    private Symbol tryDeclareVariable (Token ident) {
+    private Symbol tryDeclareVariable (Symbol sym) {
         //TODO: Try declaring variable, handle RedeclarationError
+        try {
+            return symbolTable.insert(sym);
+        } catch (RedeclarationError e) {
+            reportDeclareSymbolError(sym.name(), sym.lineNumber(), sym.charPosition());
+            return null;
+        }
     }
 
     private String reportResolveSymbolError (String name, int lineNum, int charPos) {
@@ -230,7 +245,7 @@ public class Compiler {
 
         // if array is null
         ArrayIndex array = new ArrayIndex(lineNum, charPos, ident, exps);
-
+        // use previous entry in symbol table to ge type
         return Identifier(lineNum, charPos, ident, array);
     }
 
