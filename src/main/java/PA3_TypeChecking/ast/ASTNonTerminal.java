@@ -38,6 +38,7 @@ public enum ASTNonTerminal {
 
     Relation("Relation"), // Relation[==]
 
+    Identifier("Identifier"),
     FloatLiteral("FloatLiteral"), // FloatLiteral[1.0]
     IntegerLiteral("IntegerLiteral"), // IntegerLiteral[1]
     BoolLiteral("BoolLiteral"), // BoolLiteral[true]
