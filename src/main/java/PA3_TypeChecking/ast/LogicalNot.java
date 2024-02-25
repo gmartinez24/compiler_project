@@ -6,4 +6,13 @@ public class LogicalNot extends Node implements Expression {
         super(lineNum, charPos);
         this.negated = negated;
     }
+
+    public Expression expression() {
+        return this.negated;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

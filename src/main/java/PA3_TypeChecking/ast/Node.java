@@ -29,6 +29,12 @@ public class Node implements Visitable {
         return this.getClass().getSimpleName();
     }
 
+    @Override
+    public void accept(NodeVisitor visitor) {
+        //visitor.visit((BoolLiteral) this);
+    }
+
+
     // Some factory method
 //    public static Statement newAssignment (int lineNum, int charPos, Expression dest, Token assignOp, Expression src) {
 //
@@ -42,8 +48,4 @@ public class Node implements Visitable {
 //
 //    }
 
-    @Override
-    public void accept(NodeVisitor visitor) {
-
-    }
 }

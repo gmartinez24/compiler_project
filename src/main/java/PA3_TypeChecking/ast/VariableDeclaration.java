@@ -16,4 +16,9 @@ public class VariableDeclaration extends Node implements Declaration{
         return this.sym;
 
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

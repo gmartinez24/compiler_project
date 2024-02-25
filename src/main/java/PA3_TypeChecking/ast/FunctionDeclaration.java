@@ -9,14 +9,14 @@ public class FunctionDeclaration extends Node implements Declaration{
     private Type type;
     private Symbol identSymbol;
     private List<Symbol> params;
-    private FunctionBody funcBody;
+    private FunctionBody body;
 
 
     public FunctionDeclaration(int lineNum, int charPos, Type type, String ident, List<Symbol> params, FunctionBody funcBody){
         super(lineNum, charPos);
         identSymbol = new Symbol(type, ident, lineNum, charPos);
         this.params = params;
-        this.funcBody = funcBody;
+        this.body = funcBody;
     }
 
     public String function() {
@@ -35,7 +35,12 @@ public class FunctionDeclaration extends Node implements Declaration{
         return params;
     }
 
-    public FunctionBody funcBody(){
-        return funcBody;
+    public FunctionBody body(){
+        return body;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -25,5 +25,10 @@ public class IfStatement extends Node implements Statement{
     public StatementSequence elseBlock(){
         return elseSeq;
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }
 

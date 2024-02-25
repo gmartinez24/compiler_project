@@ -9,7 +9,7 @@ public interface NodeVisitor {
 
     // designator
     //public void visit (AddressOf node);
-    public void visit (ArrayIndex node);
+    //public void visit (ArrayIndex node);
     public void visit (Identifier node);
 
     // groupExpr

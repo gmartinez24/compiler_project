@@ -28,6 +28,6 @@ public class DeclarationList extends Node{
 
     @Override
     public void accept(NodeVisitor visitor) {
-
+        visitor.visit(this);
     }
 }

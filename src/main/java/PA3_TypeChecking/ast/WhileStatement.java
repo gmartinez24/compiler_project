@@ -22,4 +22,9 @@ public class WhileStatement extends Node implements Statement{
     public StatementSequence statSeq(){
         return this.statSeq;
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -12,4 +12,13 @@ public class ArgumentList extends Node {
         super(lineNum, charPos);
         this.args = args;
     }
+
+    public List<Expression> args() {
+        return this.args;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -12,4 +12,13 @@ public class IntegerLiteral extends Node implements Expression{
         this.value = parseInt(value);
         type = new types.IntType();
     }
+
+    public int value() {
+        return this.value;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

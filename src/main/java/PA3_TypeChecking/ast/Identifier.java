@@ -17,4 +17,13 @@ public class Identifier extends Node implements Expression{
             indexList = null;
         }
     }
+
+    public Symbol symbol() {
+        return identSymbol;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

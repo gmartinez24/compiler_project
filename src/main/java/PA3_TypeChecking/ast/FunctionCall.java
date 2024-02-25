@@ -8,4 +8,17 @@ public class FunctionCall extends Node implements Statement,Expression{
         this.args = args;
         this.funcSym = funcSym;
     }
+
+    public co2.Symbol symbol() {
+        return funcSym;
+    }
+
+    public ArgumentList args() {
+        return args;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

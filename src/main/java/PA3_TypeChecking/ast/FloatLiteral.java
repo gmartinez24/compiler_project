@@ -11,4 +11,13 @@ public class FloatLiteral extends Node implements Expression{
         this.value = parseFloat(value);
         type = new types.FloatType();
     }
+
+    public float value() {
+        return this.value;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }
