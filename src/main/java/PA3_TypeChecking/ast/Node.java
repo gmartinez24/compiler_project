@@ -1,6 +1,6 @@
 package ast;
 
-
+import co2.Token;
 
 public class Node implements Visitable {
 
