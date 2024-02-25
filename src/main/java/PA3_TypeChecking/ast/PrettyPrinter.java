@@ -10,7 +10,7 @@ public class PrettyPrinter implements NodeVisitor {
         for (int i = 0; i < depth; i++) {
             indent += "  ";
         }
-        sb.append(indent + n.getClassInfo() + message + "\n");
+        sb.append(indent + n.toString() + message + "\n");
     }
 
     @Override
@@ -122,6 +122,9 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit(Relation node) {
+        if (node.isEmpty()) {
+            return;
+        }
         println(node, "[" + node.operator() + "]");
         depth++;
         node.lhs().accept(this);

@@ -26,5 +26,11 @@ public class TypeList extends Type implements Iterable<Type> {
     }
 
     //TODO more helper here
-    
+    public int length() {
+        return list.size();
+    }
+
+    public Type at(int index) {
+        return list.get(index);
+    }
 }

@@ -32,6 +32,8 @@ public class FloatType extends Type {
     }
     //Don't need to implement boolean operators, as super already handles those cases
 
-
+    public String toString() {
+        return "float";
+    }
 
 }

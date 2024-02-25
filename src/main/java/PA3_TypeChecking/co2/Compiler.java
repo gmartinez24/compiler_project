@@ -351,11 +351,11 @@ public class Compiler {
         Token func = expectRetrieve(Token.Kind.FUNC);
         String name = expectRetrieve(Token.Kind.IDENT).lexeme();
 
-        TypeList funcType = new TypeList();
+        FuncType funcType = new FuncType();
 
         List<Symbol> params= formalParam();
         for (Symbol param : params) {
-            funcType.append(param.type());
+            funcType.params().append(param.type());
         }
         expect(Token.Kind.COLON);
 
@@ -363,13 +363,13 @@ public class Compiler {
         Token.Kind returnType = currentToken.kind();
         if (accept(Token.Kind.VOID) || accept(NonTerminal.TYPE_DECL)) {
             if (returnType == Token.Kind.VOID) {
-                funcType.append(new VoidType());
+                funcType.params().append(new VoidType());
             } else if (returnType == Token.Kind.INT) {
-                funcType.append(new IntType());
+                funcType.params().append(new IntType());
             } else if (returnType == Token.Kind.FLOAT) {
-                funcType.append(new FloatType());
+                funcType.params().append(new FloatType());
             } else if (returnType == Token.Kind.BOOL) {
-                funcType.append(new BoolType());
+                funcType.params().append(new BoolType());
             }
 
         } else {
@@ -533,7 +533,7 @@ public class Compiler {
         // for empty return statements
         if(have(Token.Kind.SEMICOLON) || have(Token.Kind.CLOSE_PAREN)){
             //Need to figure out what to do with return of NULL
-            return null;
+            return new Relation(currentToken.lineNumber(), currentToken.charPosition(), null, null, null);
         }
         Expression rightSide;
         Expression leftSide = addExpr();

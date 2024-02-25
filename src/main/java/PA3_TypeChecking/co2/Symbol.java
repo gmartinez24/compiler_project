@@ -28,7 +28,7 @@ public class Symbol {
     public int charPosition() {return charPosition;}
 
     public String toString() {
-        return "(" + name +":" + type +")";
+        return "(" + name +":" + type.toString() +")";
     }
 
 }

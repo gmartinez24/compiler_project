@@ -108,7 +108,7 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(Addition node) {
-        Types.
+        //Types.
     }
 
     @Override
