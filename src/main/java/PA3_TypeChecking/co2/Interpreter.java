@@ -3,7 +3,7 @@ package co2;
 import java.io.*;
 import java.util.*;
 
-public class Parser {
+public class Interpreter {
 
     // Error Reporting ============================================================
     private StringBuilder errorBuffer = new StringBuilder();
@@ -44,7 +44,7 @@ public class Parser {
     }
 
 // Parser ============================================================
-    private co2.Scanner scanner;
+    private Scanner scanner;
     private Token currentToken;
 
     private BufferedReader reader;
@@ -52,7 +52,7 @@ public class Parser {
 
     // TODO: add maps from Token IDENT to int/float/bool
 
-    public Parser (co2.Scanner scanner, InputStream in) {
+    public Interpreter(co2.Scanner scanner, InputStream in) {
         this.scanner = scanner;
         currentToken = this.scanner.next();
 
