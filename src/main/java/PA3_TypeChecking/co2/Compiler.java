@@ -531,7 +531,8 @@ public class Compiler {
     private Expression relExpr () {
         // for empty return statements
         if(have(Token.Kind.SEMICOLON) || have(Token.Kind.CLOSE_PAREN)){
-            return null;
+            // empty relation
+            return new Relation(currentToken.lineNumber(), currentToken.charPosition(), null, null, null);
         }
         Expression rightSide;
         Expression leftSide = addExpr();
@@ -631,7 +632,6 @@ public class Compiler {
             return funcCall();
         } else {
             expect(NonTerminal.GROUP_EXPR);
-
         }
         return null;
     }
