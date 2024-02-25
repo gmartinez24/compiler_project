@@ -85,12 +85,9 @@ public class SymbolTable {
     // lookup name in SymbolTable
     public Symbol lookup (String name) throws SymbolNotFoundError {
         Symbol sym = Scopes.get(currentScope).get(name);
-        System.out.println(Scopes.get(currentScope).toString());
         int scope = currentScope;
-        System.out.println(scope);
         while (scope > 0 && sym == null) {
             scope--;
-            System.out.println(Scopes.get(currentScope).toString());
 
             sym = Scopes.get(scope).get(name);
         }

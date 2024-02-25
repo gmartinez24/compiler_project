@@ -244,7 +244,9 @@ public class PrettyPrinter implements NodeVisitor {
     public void visit (Computation node) {
         println(node, "[" + node.main() + "]");
         depth++;
-        node.variables().accept(this);
+        if(node.variables() != null){
+            node.variables().accept(this);
+        }
         if(node.functions() != null){
             node.functions().accept(this);
 

@@ -10,6 +10,11 @@ import co2.Symbol;
 
 public class TypeChecker implements NodeVisitor {
 
+
+    //The TypeChecker class is another implementation of the node visitor
+    //Based on the visitor pattern. Starting at the root node (computation)
+    //We will traverse the tree and commit type checking via the specific type classes
+    //In the types directory.
     
     private StringBuilder errorBuffer;
     private Symbol currentFunction;
@@ -103,7 +108,7 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(Addition node) {
-
+        Types.
     }
 
     @Override

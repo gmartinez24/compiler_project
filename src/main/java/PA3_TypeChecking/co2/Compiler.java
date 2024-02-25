@@ -655,7 +655,6 @@ public class Compiler {
         expect(Token.Kind.OPEN_PAREN);
 
         List<Expression> args = new ArrayList<>();
-        System.out.println(currentToken);
         Expression firstArg = relExpr();
         ArgumentList argumentList;
         if(firstArg == null){
