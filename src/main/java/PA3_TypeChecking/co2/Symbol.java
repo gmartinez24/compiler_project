@@ -10,7 +10,6 @@ public class Symbol {
 
     private int charPosition;
 
-    // TODO: Add other parameters like type
 
     public Symbol ( types.Type type, String name, int lineNumber, int charPosition) {
         this.name = name;
