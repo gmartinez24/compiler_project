@@ -1,0 +1,8 @@
+Error type-checking file.
+TypeError(17,30)[Cannot compare float with int.]
+TypeError(17,23)[Cannot compute bool and ErrorType(Cannot compare float with int.).]
+TypeError(17,9)[Cannot negate ErrorType(Cannot compute bool and ErrorType(Cannot compare float with int.).).]
+TypeError(17,5)[IfStat requires bool condition not ErrorType(Cannot negate ErrorType(Cannot compute bool and ErrorType(Cannot compare float with int.).).).]
+TypeError(18,15)[Cannot compare float with int.]
+TypeError(18,9)[IfStat requires bool condition not ErrorType(Cannot compare float with int.).]
+

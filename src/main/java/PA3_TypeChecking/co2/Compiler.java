@@ -72,6 +72,7 @@ public class Compiler {
     public AST genAST() {
         // the computation function returns an instance of computation to pass
         // to constructor of AST as root node
+        initSymbolTable();
         return new AST(computation());
     }
     
@@ -531,6 +532,7 @@ public class Compiler {
     private Expression relExpr () {
         // for empty return statements
         if(have(Token.Kind.SEMICOLON) || have(Token.Kind.CLOSE_PAREN)){
+            //Need to figure out what to do with return of NULL
             return null;
         }
         Expression rightSide;
@@ -653,12 +655,20 @@ public class Compiler {
         expect(Token.Kind.OPEN_PAREN);
 
         List<Expression> args = new ArrayList<>();
+        System.out.println(currentToken);
         Expression firstArg = relExpr();
-        args.add(firstArg);
-        while (accept(Token.Kind.COMMA)) {
-            args.add(relExpr());
+        ArgumentList argumentList;
+        if(firstArg == null){
+            argumentList = new ArgumentList(lineNumber(), charPosition(), args);
         }
-        ArgumentList argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
+        else{
+            args.add(firstArg);
+            while (accept(Token.Kind.COMMA)) {
+                args.add(relExpr());
+            }
+            argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
+        }
+
 
         expect(Token.Kind.CLOSE_PAREN);
 
@@ -676,9 +686,12 @@ public class Compiler {
         Expression rel = relation();
         expect(Token.Kind.THEN);
         StatementSequence thenBlock = statSeq();
-        StatementSequence elseBlock = null;
+        StatementSequence elseBlock;
         if (accept(Token.Kind.ELSE)) {
             elseBlock = statSeq();
+        }
+        else{
+            elseBlock = new StatementSequence(lineNumber(), charPosition());
         }
         expect(Token.Kind.FI);
 

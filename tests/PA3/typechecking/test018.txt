@@ -1,0 +1,11 @@
+// Haden Johnson
+// Testing assignment with function calls
+
+main
+
+int a;
+
+{
+	a = call readInt();
+	a = call printInt(a); // error (int != void)
+}.

@@ -1,0 +1,21 @@
+// Grant Martinez
+
+main
+
+int a;
+int b;
+int max;
+
+
+{
+    a = call readInt(); // 20
+    b = call readInt(); // 63
+    call println();
+    if (a > b) then
+        max = a;
+    else
+        max = b;
+    fi;
+    call printInt(max); // should be 63
+
+}.

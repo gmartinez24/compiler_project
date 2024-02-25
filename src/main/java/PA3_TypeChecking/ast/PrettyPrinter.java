@@ -213,6 +213,11 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit(FunctionBody node) {
+        println(node, "");
+        if(node.vars() != null){
+            node.vars().accept(this);
+        }
+        node.funcSeq().accept(this);
 
     }
 
@@ -240,7 +245,10 @@ public class PrettyPrinter implements NodeVisitor {
         println(node, "[" + node.main() + "]");
         depth++;
         node.variables().accept(this);
-        node.functions().accept(this);
+        if(node.functions() != null){
+            node.functions().accept(this);
+
+        }
         node.mainStatementSequence().accept(this);
         depth--;
     }

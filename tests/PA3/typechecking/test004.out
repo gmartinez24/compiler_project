@@ -1,0 +1,4 @@
+Error type-checking file.
+TypeError(9,5)[Function isOdd returns int instead of bool.]
+TypeError(29,5)[Function numOddsRange returns bool instead of int.]
+
