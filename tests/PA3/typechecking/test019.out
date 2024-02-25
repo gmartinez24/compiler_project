@@ -1,0 +1,4 @@
+Error type-checking file.
+TypeError(10,17)[ErrorType(Call with args TypeList() matches no function signature.)]
+TypeError(12,16)[ErrorType(Call with args TypeList(int) matches no function signature.)]
+TypeError(14,18)[ErrorType(Call with args TypeList() matches no function signature.)]

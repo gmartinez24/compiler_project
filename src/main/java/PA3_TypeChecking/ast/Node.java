@@ -26,7 +26,7 @@ public class Node implements Visitable {
 
     @Override
     public String toString () {
-        return this.getClass().getSimpleName();
+        return this.getClass().getSimpleName() + "(" + this.lineNum + "," + this.charPos + ")";
     }
 
     @Override

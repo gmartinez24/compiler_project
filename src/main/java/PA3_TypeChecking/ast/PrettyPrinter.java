@@ -10,7 +10,7 @@ public class PrettyPrinter implements NodeVisitor {
         for (int i = 0; i < depth; i++) {
             indent += "  ";
         }
-        sb.append(indent + n.getClassInfo() + message + "\n");
+        sb.append(indent + n.toString() + message + "\n");
     }
 
     @Override
@@ -122,6 +122,9 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit(Relation node) {
+        if (node.isEmpty()) {
+            return;
+        }
         println(node, "[" + node.operator() + "]");
         depth++;
         node.lhs().accept(this);
@@ -213,6 +216,11 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit(FunctionBody node) {
+        println(node, "");
+        if(node.vars() != null){
+            node.vars().accept(this);
+        }
+        node.funcSeq().accept(this);
 
     }
 
@@ -239,8 +247,13 @@ public class PrettyPrinter implements NodeVisitor {
     public void visit (Computation node) {
         println(node, "[" + node.main() + "]");
         depth++;
-        node.variables().accept(this);
-        node.functions().accept(this);
+        if(node.variables() != null){
+            node.variables().accept(this);
+        }
+        if(node.functions() != null){
+            node.functions().accept(this);
+
+        }
         node.mainStatementSequence().accept(this);
         depth--;
     }

@@ -20,4 +20,13 @@ public class ArrayType extends Type {
         this.elementType = elementType;
     }
 
+    public String toString() {
+        String type = "";
+        for (Integer dim : dimensions) {
+            type+="[]";
+        }
+        return elementType.toString() + type;
+    }
+
+
 }

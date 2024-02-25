@@ -24,57 +24,57 @@ public class SymbolTable {
         // put predefined functions in global scope
 
         // int readInt()
-        TypeList readIntType = new TypeList();
-        readIntType.append(new IntType());
+        FuncType readIntType = new FuncType();
+        readIntType.params().append(new IntType());
         Symbol readInt = new Symbol(readIntType, "readInt", 0, 0);
         globalScope.put("readInt", readInt);
 
         // float readFloat()
-        TypeList readFloatType = new TypeList();
-        readIntType.append(new FloatType());
+        FuncType readFloatType = new FuncType();
+        readFloatType.params().append(new FloatType());
         Symbol readFloat = new Symbol(readFloatType, "readFloat", 0, 0);
         globalScope.put("readFloat", readFloat);
 
 
         // bool readBool()
-        TypeList readBoolType = new TypeList();
-        readBoolType.append(new BoolType());
+        FuncType readBoolType = new FuncType();
+        readBoolType.params().append(new BoolType());
         Symbol readBool = new Symbol(readBoolType, "readBool", 0, 0);
         globalScope.put("readBool", readBool);
 
         // void printInt(int arg)
-        TypeList printIntType = new TypeList();
-        printIntType.append(new IntType());
-        printIntType.append(new VoidType());
+        FuncType printIntType = new FuncType();
+        printIntType.params().append(new IntType());
+        printIntType.params().append(new VoidType());
         Symbol printInt = new Symbol(printIntType, "printInt", 0, 0);
         globalScope.put("printInt", printInt);
 
         // void printFloat(int arg)
-        TypeList printFloatType = new TypeList();
-        printFloatType.append(new IntType());
-        printFloatType.append(new VoidType());
+        FuncType printFloatType = new FuncType();
+        printFloatType.params().append(new IntType());
+        printFloatType.params().append(new VoidType());
         Symbol printFloat = new Symbol(printFloatType, "printFloat", 0, 0);
         globalScope.put("printFloat", printFloat);
 
         // void printBool(bool arg)
-        TypeList printBoolType = new TypeList();
-        printBoolType.append(new IntType());
-        printBoolType.append(new VoidType());
+        FuncType printBoolType = new FuncType();
+        printBoolType.params().append(new IntType());
+        printBoolType.params().append(new VoidType());
         Symbol printBool = new Symbol(printBoolType, "printBool", 0, 0);
         globalScope.put("printBool", printBool);
 
         // void println()
-        TypeList printlnType = new TypeList();
-        printlnType.append(new VoidType());
+        FuncType printlnType = new FuncType();
+        printlnType.params().append(new VoidType());
         Symbol println = new Symbol(printlnType, "println", 0, 0);
         globalScope.put("println", println);
 
         // void arrcpy(T[] dest, T[] src, int n)
-        TypeList arrcpyType = new TypeList();
-        arrcpyType.append(new ArrayType());
-        arrcpyType.append(new ArrayType());
-        arrcpyType.append(new IntType());
-        arrcpyType.append(new VoidType());
+        FuncType arrcpyType = new FuncType();
+        arrcpyType.params().append(new ArrayType());
+        arrcpyType.params().append(new ArrayType());
+        arrcpyType.params().append(new IntType());
+        arrcpyType.params().append(new VoidType());
         Symbol arrcpy = new Symbol(arrcpyType, "arrcpy", 0, 0 );
         globalScope.put("arrcpy", arrcpy);
 
@@ -88,6 +88,7 @@ public class SymbolTable {
         int scope = currentScope;
         while (scope > 0 && sym == null) {
             scope--;
+
             sym = Scopes.get(scope).get(name);
         }
 
@@ -101,11 +102,16 @@ public class SymbolTable {
 
     // insert name in SymbolTable
     public Symbol insert (Symbol sym) throws RedeclarationError {
-        if (this.lookup(sym.name()) != null) {
+        //If the lookup throws an error, doesn't exist so we can insert
+        //Changing this algo
+        try{
+            this.lookup(sym.name());
             throw new RedeclarationError(sym.name());
-        } else {
+        }
+        catch(SymbolNotFoundError e){
             return Scopes.get(currentScope).put(sym.name(), sym);
         }
+
         //throw new RuntimeException("implement insert variable");
     }
 

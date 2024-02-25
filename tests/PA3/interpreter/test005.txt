@@ -1,0 +1,14 @@
+// Isuranga Perera
+// assign int to array and print
+main
+
+int x;
+int[5] y;
+int[4][6] z;
+
+{
+    x = call readInt();
+    y[3] = x;
+    z[3][2] = y[3];
+    call printInt(z[3][2]);
+}.

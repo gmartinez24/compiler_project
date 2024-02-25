@@ -1,0 +1,3 @@
+Error type-checking file.
+TypeError(28,9)[Function coolFunc returns bool instead of int.]
+

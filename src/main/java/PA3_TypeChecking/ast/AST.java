@@ -1,5 +1,5 @@
 package ast;
-
+import java.util.Stack;
 public class AST {
 
     // private members
@@ -21,10 +21,13 @@ public class AST {
     }
 
     public String printPreOrder(){
-        // For your testing
-        // TODO: Return the pre order traversal of AST. Use "\n" as separator.
-        // TODO: Uses PrettyPrinter class with visit() function
-        // Use the enum ASTNonTerminal provided for naming convention.
-        throw new RuntimeException("implement printPreOrder function");
+        PrettyPrinter printer = new PrettyPrinter();
+        if(root == null){
+            return "";
+        }
+        root.accept(printer);
+        return printer.toString();
+
+
     }
 }

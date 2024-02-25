@@ -176,6 +176,8 @@ public class Token {
         if(!determineTokenKind(lexeme)) {
             this.kind = Kind.ERROR;
             this.lexeme = "Unrecognized lexeme: " + lexeme;
+        } else {
+            this.lexeme = lexeme;
         }
     }
 

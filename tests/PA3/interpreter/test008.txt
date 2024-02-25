@@ -1,0 +1,18 @@
+// Spencer Banasik
+// Tests early return statements
+main
+
+int x;
+
+{
+    x = call readInt();
+
+    call printInt(x);
+    call println();
+    if (x == 1) then
+        return;
+    else
+        x = 5;
+        call printInt(x);
+    fi; 
+}.

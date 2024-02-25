@@ -1,5 +1,7 @@
 package ast;
 
+import co2.Token;
+
 public class Relation extends Node implements Expression{
 
     //Relation takes in a relExpr ARE ALL RELEXPR - > EXPRESSIONS
@@ -10,9 +12,11 @@ public class Relation extends Node implements Expression{
     private co2.Token op;
     private Expression lhs;
     private Expression rhs;
+    private boolean empty;
 
     public Relation(int lineNum, int charPos, Expression lhs, Expression rhs, co2.Token op) {
         super(lineNum, charPos);
+        empty = rhs == null && lhs == null;
         this.lhs = lhs;
         this.rhs = rhs;
         this.op = op;
@@ -30,6 +34,7 @@ public class Relation extends Node implements Expression{
         return this.rhs;
     }
 
+    public boolean isEmpty () {return empty;}
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);

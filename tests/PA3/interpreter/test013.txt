@@ -1,0 +1,14 @@
+// Arvind Murthy
+// Checking if printBool works with arithmetic in condition
+
+main
+
+int a;
+int b;
+
+{
+    a = call readInt();
+    b = call readInt();
+    call println();
+    call printBool(a > (b*2))
+}.

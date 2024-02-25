@@ -10,6 +10,11 @@ import co2.Symbol;
 
 public class TypeChecker implements NodeVisitor {
 
+
+    //The TypeChecker class is another implementation of the node visitor
+    //Based on the visitor pattern. Starting at the root node (computation)
+    //We will traverse the tree and commit type checking via the specific type classes
+    //In the types directory.
     
     private StringBuilder errorBuffer;
     private Symbol currentFunction;
@@ -49,6 +54,136 @@ public class TypeChecker implements NodeVisitor {
 
     public String errorReport () {
         return errorBuffer.toString();
+    }
+
+    @Override
+    public void visit(BoolLiteral node) {
+
+    }
+
+    @Override
+    public void visit(IntegerLiteral node) {
+
+    }
+
+    @Override
+    public void visit(FloatLiteral node) {
+
+    }
+
+    @Override
+    public void visit(Identifier node) {
+
+    }
+
+    @Override
+    public void visit(LogicalNot node) {
+
+    }
+
+    @Override
+    public void visit(Power node) {
+
+    }
+
+    @Override
+    public void visit(Multiplication node) {
+
+    }
+
+    @Override
+    public void visit(Division node) {
+
+    }
+
+    @Override
+    public void visit(Modulo node) {
+
+    }
+
+    @Override
+    public void visit(LogicalAnd node) {
+
+    }
+
+    @Override
+    public void visit(Addition node) {
+        //Types.
+    }
+
+    @Override
+    public void visit(Subtraction node) {
+
+    }
+
+    @Override
+    public void visit(LogicalOr node) {
+
+    }
+
+    @Override
+    public void visit(Relation node) {
+
+    }
+
+    @Override
+    public void visit(Assignment node) {
+
+    }
+
+    @Override
+    public void visit(ArgumentList node) {
+
+    }
+
+    @Override
+    public void visit(FunctionCall node) {
+
+    }
+
+    @Override
+    public void visit(IfStatement node) {
+
+    }
+
+    @Override
+    public void visit(WhileStatement node) {
+
+    }
+
+    @Override
+    public void visit(RepeatStatement node) {
+
+    }
+
+    @Override
+    public void visit(ReturnStatement node) {
+
+    }
+
+    @Override
+    public void visit(StatementSequence node) {
+
+    }
+
+    @Override
+    public void visit(VariableDeclaration node) {
+
+    }
+
+    @Override
+    public void visit(FunctionBody node) {
+
+    }
+
+    @Override
+    public void visit(FunctionDeclaration node) {
+
+    }
+
+    @Override
+    public void visit(DeclarationList node) {
+
     }
 
     @Override

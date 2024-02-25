@@ -1,0 +1,21 @@
+//Grant Muirheid
+//Ensures that function can take itself as a parameter
+
+main
+
+int a;
+int b;
+int c;
+int d;
+
+function myAdder(int x, int y) : int
+{
+    return x + y;
+};
+
+{
+    a = 3;
+    b = 4;
+    c = 5;
+    d = call myAdder(a, call myAdder(b, c));
+}.
