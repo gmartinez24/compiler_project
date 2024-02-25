@@ -4,6 +4,7 @@ package co2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import types.*;
 
 public class SymbolTable {
 
@@ -14,12 +15,69 @@ public class SymbolTable {
 
     int currentScope;
     // create a stack of scopes
-    // each scope is a hashtable as descibed above
+    // each scope is a hashtable as described above
     public SymbolTable () {
 
         Scopes = new ArrayList<>();
         HashMap<String, Symbol> globalScope = new HashMap<>();
         Scopes.add(globalScope);
+        // put predefined functions in global scope
+
+        // int readInt()
+        TypeList readIntType = new TypeList();
+        readIntType.append(new IntType());
+        Symbol readInt = new Symbol(readIntType, "readInt", 0, 0);
+        globalScope.put("readInt", readInt);
+
+        // float readFloat()
+        TypeList readFloatType = new TypeList();
+        readIntType.append(new FloatType());
+        Symbol readFloat = new Symbol(readFloatType, "readFloat", 0, 0);
+        globalScope.put("readFloat", readFloat);
+
+
+        // bool readBool()
+        TypeList readBoolType = new TypeList();
+        readBoolType.append(new BoolType());
+        Symbol readBool = new Symbol(readBoolType, "readBool", 0, 0);
+        globalScope.put("readBool", readBool);
+
+        // void printInt(int arg)
+        TypeList printIntType = new TypeList();
+        printIntType.append(new IntType());
+        printIntType.append(new VoidType());
+        Symbol printInt = new Symbol(printIntType, "printInt", 0, 0);
+        globalScope.put("printInt", printInt);
+
+        // void printFloat(int arg)
+        TypeList printFloatType = new TypeList();
+        printFloatType.append(new IntType());
+        printFloatType.append(new VoidType());
+        Symbol printFloat = new Symbol(printFloatType, "printFloat", 0, 0);
+        globalScope.put("printFloat", printFloat);
+
+        // void printBool(bool arg)
+        TypeList printBoolType = new TypeList();
+        printBoolType.append(new IntType());
+        printBoolType.append(new VoidType());
+        Symbol printBool = new Symbol(printBoolType, "printBool", 0, 0);
+        globalScope.put("printBool", printBool);
+
+        // void println()
+        TypeList printlnType = new TypeList();
+        printlnType.append(new VoidType());
+        Symbol println = new Symbol(printlnType, "println", 0, 0);
+        globalScope.put("println", println);
+
+        // void arrcpy(T[] dest, T[] src, int n)
+        TypeList arrcpyType = new TypeList();
+        arrcpyType.append(new ArrayType());
+        arrcpyType.append(new ArrayType());
+        arrcpyType.append(new IntType());
+        arrcpyType.append(new VoidType());
+        Symbol arrcpy = new Symbol(arrcpyType, "arrcpy", 0, 0 );
+        globalScope.put("arrcpy", arrcpy);
+
         currentScope = 0;
         //throw new RuntimeException("Create Symbol Table and initialize predefined functions");
     }

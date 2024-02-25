@@ -7,6 +7,10 @@ import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 import ast.*;
+import types.TypeList;
+import types.*;
+
+import static java.lang.Integer.parseInt;
 
 public class Compiler {
 
@@ -115,7 +119,6 @@ public class Compiler {
     }
 
     private Symbol tryResolveVariable (Token ident) {
-        //TODO: Try resolving variable, handle SymbolNotFoundError
         try {
             return symbolTable.lookup(ident.lexeme());
         } catch(SymbolNotFoundError e) {
@@ -125,7 +128,6 @@ public class Compiler {
     }
 
     private Symbol tryDeclareVariable (Symbol sym) {
-        //TODO: Try declaring variable, handle RedeclarationError
         try {
             return symbolTable.insert(sym);
         } catch (RedeclarationError e) {
@@ -233,28 +235,36 @@ public class Compiler {
     // unsure of how to implement this. what to return here
     // see that ArrayIndex would be used here, but how to return identifier?
     private Expression designator () {
-        int lineNum = lineNumber();
-        int charPos = charPosition();
+//        int lineNum = lineNumber();
+//        int charPos = charPosition();
 
-        String ident = expectRetrieve(Token.Kind.IDENT).lexeme();
-        List<Expression> exps = new ArrayList<>();
+        Token tok = expectRetrieve(Token.Kind.IDENT);
+        int lineNum = tok.lineNumber();
+        int charPos = tok.charPosition();
+
+        List<ArrayIndex> indexes = new ArrayList<>();
         while (accept(Token.Kind.OPEN_BRACKET)) {
-            exps.add(relExpr());
+            indexes.add(relExpr());
             accept(Token.Kind.CLOSE_BRACKET);
         }
 
         // if array is null
-        ArrayIndex array = new ArrayIndex(lineNum, charPos, ident, exps);
+        //ArrayIndex array = new ArrayIndex(lineNum, charPos, exps);
         // use previous entry in symbol table to ge type
-        return Identifier(lineNum, charPos, ident, array);
+        Symbol sym = tryResolveVariable(tok);
+        return Identifier(lineNum, charPos, sym, indexes);
     }
 
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private Computation computation () {
 
+        // create a type list as the type for main
         Token main = expectRetrieve(Token.Kind.MAIN);
-        Symbol mainSymbol = new Symbol("TypeList() -> void", "main");
+        TypeList mainType = new TypeList();
+        mainType.append(new VoidType());
+        Symbol mainSymbol = new Symbol(mainType, main.lexeme(), main.lineNumber(), main.charPosition());
+
         DeclarationList varList = null;
         DeclarationList funcList = null;
         StatementSequence statementSequence;
@@ -285,61 +295,101 @@ public class Compiler {
 
     // varDecl = typeDecl ident {"," ident} ";"
     private void varDecl(DeclarationList varList) {
-        String type = typeDecl();
+        Type type = typeDecl();
         do {
             Token var = expectRetrieve(Token.Kind.IDENT);
+            Symbol sym = new Symbol(type, var.lexeme(), var.lineNumber(), var.charPosition());
+            tryDeclareVariable(sym);
             varList.addDeclaration(new VariableDeclaration(var.lineNumber(), var.charPosition(), type, var.lexeme()));
         } while(accept(Token.Kind.COMMA));
         expect(Token.Kind.SEMICOLON);
     }
 
     // typeDecl = type  { "[" integerLit "]" }
-    private String typeDecl() {
-        String type = expectRetrieve(NonTerminal.TYPE_DECL).lexeme();
-        while (accept(Token.Kind.OPEN_BRACKET)) {
-            type +="[";
-            type+=expectRetrieve(Token.Kind.INT_VAL).lexeme();
-            expect(Token.Kind.CLOSE_BRACKET);
-            type+="]";
+    private Type typeDecl() {
+        Token tok = expectRetrieve(NonTerminal.TYPE_DECL);
+        Type type = null;
+        if (have(Token.Kind.OPEN_BRACKET)) {
+            int dimensionSize;
+            List<Integer> dimensions = new ArrayList<>();
+            while (accept(Token.Kind.OPEN_BRACKET)) {
+                dimensionSize = parseInt(expectRetrieve(Token.Kind.INT_VAL).lexeme());
+                dimensions.add(dimensionSize);
+                expect(Token.Kind.CLOSE_BRACKET);
+            }
+            // getting type of array elements
+            Type elementType;
+            if (tok.is(Token.Kind.INT)) {
+                elementType = new IntType();
+            } else if (tok.is(Token.Kind.FLOAT)) {
+                elementType = new FloatType();
+            } else {
+                elementType = new BoolType();
+            }
+            type = new ArrayType(elementType, dimensions);
+
+        } else if (tok.is(Token.Kind.INT)) {
+            type = new IntType();
+        } else if (tok.is(Token.Kind.FLOAT)) {
+            type = new FloatType();
+        } else if (tok.is(Token.Kind.BOOL)) {
+            type = new BoolType();
         }
+
         return type;
     }
 
     // funcDecl = "function" ident formalParam ":" ("void" | type ) funcBody
     private FunctionDeclaration funcDecl() {
+
+        enterScope();
+
         Token func = expectRetrieve(Token.Kind.FUNC);
         String name = expectRetrieve(Token.Kind.IDENT).lexeme();
-        String type = "TypeList(";
+
+        TypeList funcType = new TypeList();
+
         List<Symbol> params= formalParam();
         for (Symbol param : params) {
-            type += param.type()+ ", ";
+            funcType.append(param.type());
         }
-        // remove last comma and space
-        type = type.substring(0, type.length() - 2);
-        //type += formalParam() + ")->"+ currentToken.lexeme();
         expect(Token.Kind.COLON);
 
         // searches for either a VOID or a TYPE
-        if (!(accept(Token.Kind.VOID) || accept(NonTerminal.TYPE_DECL))) {
-            // may need to change this to reflect something other than expecting VOID
+        Token.Kind returnType = currentToken.kind();
+        if (accept(Token.Kind.VOID) || accept(NonTerminal.TYPE_DECL)) {
+            if (returnType == Token.Kind.VOID) {
+                funcType.append(new VoidType());
+            } else if (returnType == Token.Kind.INT) {
+                funcType.append(new IntType());
+            } else if (returnType == Token.Kind.FLOAT) {
+                funcType.append(new FloatType());
+            } else if (returnType == Token.Kind.BOOL) {
+                funcType.append(new BoolType());
+            }
+
+        } else {
             expect(NonTerminal.FUNC_DECL);
         }
 
         FunctionBody functionBody = funcBody();
-        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), type, name, params, functionBody);
+
+        exitScope();
+
+        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), funcType, name, params, functionBody);
     }
 
     // formalParam = "(" [paramDecl { "," paramDecl}] ")"
     private List<Symbol> formalParam() {
-//        String params = "";
+
         List<Symbol> params = new ArrayList<>();
         expect(Token.Kind.OPEN_PAREN);
         if (have(NonTerminal.PARAM_DECL)){
             do {
-//                params += paramDecl() + " ";
-                params.add(paramDecl());
+                Symbol param = paramDecl();
+                tryDeclareVariable(param);
+                params.add(param);
             } while(accept(Token.Kind.COMMA));
-//            params = params.substring(0, params.length() - 1);
         }
         expect(Token.Kind.CLOSE_PAREN);
         return params;
@@ -347,20 +397,42 @@ public class Compiler {
 
     // paramDecl = paramType ident
     private Symbol paramDecl() {
-        String paramType = paramType();
-        String paramName = expectRetrieve(Token.Kind.IDENT).lexeme();
-        Symbol param = new Symbol(paramType, paramName);
-        return param;
+        Type paramType = paramType();
+        Token paramName = expectRetrieve(Token.Kind.IDENT);
+        return new Symbol(paramType, paramName.lexeme(), paramName.lineNumber(), paramName.charPosition());
     }
 
     // paramType = type {"[" "]"}
-    private String paramType() {
-        String paramType = expectRetrieve(NonTerminal.TYPE_DECL).lexeme();
-        while (accept(Token.Kind.OPEN_BRACKET)) {
-            paramType+="[]";
-            expect(Token.Kind.CLOSE_BRACKET);
+    private Type paramType() {
+        Token tok = expectRetrieve(NonTerminal.TYPE_DECL);
+        Type type;
+        if (have(Token.Kind.OPEN_BRACKET)) {
+            // only making this an array list to match constructor for ArrayType
+            List<Integer> dimensions = new ArrayList<>();
+            while (accept(Token.Kind.OPEN_BRACKET)) {
+                dimensions.add(0);
+                expect(Token.Kind.CLOSE_BRACKET);
+            }
+
+            Type elementType;
+            if (tok.is(Token.Kind.INT)) {
+                elementType = new IntType();
+            } else if (tok.is(Token.Kind.FLOAT)) {
+                elementType = new FloatType();
+            } else {
+                elementType = new BoolType();
+            }
+
+            type = new ArrayType(elementType, dimensions);
+        } else if (tok.is(Token.Kind.INT)) {
+            type = new IntType();
+        } else if (tok.is(Token.Kind.FLOAT)) {
+            type = new FloatType();
+        } else {
+            type = new BoolType();
         }
-        return paramType;
+
+        return type;
     }
 
     // funcBody = "{" {varDecl}  statSeq "}" ";"
@@ -382,6 +454,7 @@ public class Compiler {
 
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.SEMICOLON);
+
         return new FunctionBody(lineNum,charPosition,varList,statementSequence);
     }
 
@@ -423,7 +496,7 @@ public class Compiler {
     }
 
     // assign = designator ( ( assignOp relExpr ) | unaryOp )
-    private Statement assign() {
+    private Assignment assign() {
         int lineNumber = currentToken.lineNumber();
         int charPosition = currentToken.charPosition();
         Expression leftSide = null;
@@ -579,6 +652,8 @@ public class Compiler {
 
     // ifStat = "if" relation "then" statSeq [ "else" statSeq ] "fi"
     private IfStatement ifStat() {
+        enterScope();
+
         Token ifStat = expectRetrieve(Token.Kind.IF);
 
         Relation rel = relation();
@@ -590,25 +665,38 @@ public class Compiler {
         }
         expect(Token.Kind.FI);
 
+        exitScope();
+
         return new IfStatement(ifStat.lineNumber(), ifStat.charPosition(), rel, thenBlock, elseBlock);
     }
 
     // whileStat = "while" relation "do" statSeq "od"
     private WhileStatement whileStat () {
+        enterScope();
+
         Token whileStat = expectRetrieve(Token.Kind.WHILE);
         Relation rel = relation();
         expect(Token.Kind.DO);
         StatementSequence doBlock = statSeq();
         expect(Token.Kind.OD);
+
+        exitScope();
+
         return new WhileStatement(whileStat.lineNumber(), whileStat.charPosition(), rel, doBlock);
     }
 
     // repeatStat = "repeat" statSeq "until" relation
     private void repeatStat () {
+
+        enterScope();
+
         Token repeatStat = expectRetrieve(Token.Kind.REPEAT);
         StatementSequence repeatBlock = statSeq();
         expect(Token.Kind.UNTIL);
         Relation rel = relation();
+
+        exitScope();
+
         return new RepeatStatement(repeatStat.lineNumber(), repeatStat.charPosition(), repeatBlock, rel);
     }
 
