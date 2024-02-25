@@ -22,6 +22,10 @@ public class DeclarationList extends Node{
         return decs.isEmpty();
     }
 
+    public List<Declaration> declarationList(){
+        return this.decs;
+    }
+
     @Override
     public void accept(NodeVisitor visitor) {
 

@@ -7,6 +7,7 @@ public enum ASTNonTerminal {
     // Comments include a few examples of the expected output for each node, enums without any comment can be printed as is.
 
     Computation("Computation"), // Computation[main:()->void]
+    //Done
     StatementSequence("StatementSequence"),
 
     Assignment("Assignment"),
@@ -16,10 +17,13 @@ public enum ASTNonTerminal {
     ReturnStatement("ReturnStatement"),
 
     DeclarationList("DeclarationList"),
+    //Done
     VariableDeclaration("VariableDeclaration"), // VariableDeclaration[input:int]
 
     FunctionDeclaration("FunctionDeclaration"), // FunctionDeclaration[power:(int,int)->int]
+    //Done
     FunctionBody("FunctionBody"),
+    //Done
     FunctionCall("FunctionCall"), // FunctionCall[power:(int,int)->int]
     ArgumentList("ArgumentList"),
 

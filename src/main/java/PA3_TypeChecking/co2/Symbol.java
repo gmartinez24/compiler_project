@@ -6,7 +6,6 @@ public class Symbol {
 
     private String type;
 
-    // TODO: Add other parameters like type
 
     public Symbol ( String type, String name) {
         this.name = name;
