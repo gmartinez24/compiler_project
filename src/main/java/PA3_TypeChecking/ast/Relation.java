@@ -11,7 +11,10 @@ public class Relation extends Node implements Expression{
     private Expression lhs;
     private Expression rhs;
 
-    protected Relation(int lineNum, int charPos) {
+    public Relation(int lineNum, int charPos, Expression lhs, Expression rhs, co2.Token op) {
         super(lineNum, charPos);
+        this.lhs = lhs;
+        this.rhs = rhs;
+        this.op = op;
     }
 }

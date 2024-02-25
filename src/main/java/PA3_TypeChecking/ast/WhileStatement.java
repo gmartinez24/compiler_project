@@ -2,20 +2,20 @@ package ast;
 
 
 // example of statement class
-public class WhileStatement extends Node {
-    private Relation relation;
+public class WhileStatement extends Node implements Statement{
+    private Expression relation;
     private StatementSequence statSeq;
 
 
 
-    protected WhileStatement(int lineNum, int charPos, Relation relation, StatementSequence statSeq) {
+    public WhileStatement(int lineNum, int charPos, Expression relation, StatementSequence statSeq) {
         super(lineNum, charPos);
         this.relation = relation;
         this.statSeq = statSeq;
 
     }
 
-    public Relation relation(){
+    public Expression relation(){
         return this.relation;
     }
 

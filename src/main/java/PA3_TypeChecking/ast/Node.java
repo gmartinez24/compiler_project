@@ -30,17 +30,17 @@ public class Node implements Visitable {
     }
 
     // Some factory method
-    public static Statement newAssignment (int lineNum, int charPos, Expression dest, Token assignOp, Expression src) {
-
-    }
-
-    public static Expression newExpression (Expression leftSide, Token op, Expression rightSide) {
-
-    }
-
-    public static Expression newLiteral (Token tok) {
- 
-    }
+//    public static Statement newAssignment (int lineNum, int charPos, Expression dest, Token assignOp, Expression src) {
+//
+//    }
+//
+//    public static Expression newExpression (Expression leftSide, Token op, Expression rightSide) {
+//
+//    }
+//
+//    public static Expression newLiteral (Token tok) {
+//
+//    }
 
     @Override
     public void accept(NodeVisitor visitor) {

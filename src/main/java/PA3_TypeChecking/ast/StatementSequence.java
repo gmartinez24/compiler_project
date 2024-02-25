@@ -5,10 +5,11 @@ import java.util.ArrayList;
 
 //Class initalized with an empty list of statements
 public class StatementSequence extends Node{
-    private ArrayList<Statement> statements = new ArrayList<>();
+    private ArrayList<Statement> statements;
 
-    protected StatementSequence(int lineNum, int charPos) {
+    public StatementSequence(int lineNum, int charPos) {
         super(lineNum, charPos);
+        statements  = new ArrayList<>();
     }
 
     public void addStatement(Statement statement){

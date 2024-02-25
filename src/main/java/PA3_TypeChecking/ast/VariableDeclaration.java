@@ -7,9 +7,9 @@ public class VariableDeclaration extends Node implements Declaration{
     private Symbol sym;
 
 
-    public VariableDeclaration(int lineNum, int charPos, String type, String ident){
+    public VariableDeclaration(int lineNum, int charPos, types.Type type, String ident){
         super(lineNum, charPos);
-        sym = new Symbol(type, ident);
+        sym = new Symbol(type, ident, lineNum, charPos);
     }
 
     public Symbol symbol() {

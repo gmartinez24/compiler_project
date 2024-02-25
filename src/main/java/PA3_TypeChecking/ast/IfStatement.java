@@ -1,19 +1,20 @@
 package ast;
 
 
-public class IfStatement extends Node{
+public class IfStatement extends Node implements Statement{
 
-    private Relation relation;
+    private Expression relation;
     private StatementSequence ifSeq;
     private StatementSequence elseSeq;
 
-    protected IfStatement(int lineNum, int charPos, StatementSequence ifStatSeq, StatementSequence elseStatSeq) {
+    public IfStatement(int lineNum, int charPos, Expression relation, StatementSequence ifStatSeq, StatementSequence elseStatSeq) {
         super(lineNum, charPos);
         ifSeq = ifStatSeq;
         elseSeq = elseStatSeq;
+        this.relation = relation;
     }
 
-    public Relation relation(){
+    public Expression relation(){
         return relation;
     }
 

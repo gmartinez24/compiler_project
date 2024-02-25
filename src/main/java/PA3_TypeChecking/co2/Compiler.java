@@ -234,7 +234,7 @@ public class Compiler {
     // designator = ident { "[" relExpr "]" }
     // unsure of how to implement this. what to return here
     // see that ArrayIndex would be used here, but how to return identifier?
-    private Expression designator () {
+    private Identifier designator () {
 //        int lineNum = lineNumber();
 //        int charPos = charPosition();
 
@@ -242,7 +242,7 @@ public class Compiler {
         int lineNum = tok.lineNumber();
         int charPos = tok.charPosition();
 
-        List<ArrayIndex> indexes = new ArrayList<>();
+        List<Expression> indexes = new ArrayList<>();
         while (accept(Token.Kind.OPEN_BRACKET)) {
             indexes.add(relExpr());
             accept(Token.Kind.CLOSE_BRACKET);
@@ -252,7 +252,7 @@ public class Compiler {
         //ArrayIndex array = new ArrayIndex(lineNum, charPos, exps);
         // use previous entry in symbol table to ge type
         Symbol sym = tryResolveVariable(tok);
-        return Identifier(lineNum, charPos, sym, indexes);
+        return new Identifier(lineNum, charPos, sym, indexes);
     }
 
 
@@ -281,7 +281,10 @@ public class Compiler {
             // deal with funcDecl 0 or many
             funcList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
             while (have(NonTerminal.FUNC_DECL)) {
-                funcList.addDeclaration(funcDecl());
+                FunctionDeclaration funcDec = funcDecl();
+                tryDeclareVariable(funcDec.funcSym());
+                funcList.addDeclaration(funcDec);
+
             }
         }
 
@@ -460,7 +463,7 @@ public class Compiler {
 
     // statSeq = statement ";" { statement ";" }
     private StatementSequence statSeq() {
-        StatementSequence statementSequence = null;
+        StatementSequence statementSequence = new StatementSequence(currentToken.lineNumber(), currentToken.charPosition());
         do{
             statementSequence.addStatement(statement());
             expect(Token.Kind.SEMICOLON);
@@ -506,8 +509,16 @@ public class Compiler {
             rightSide = relExpr();
             return new Assignment(lineNumber, charPosition, leftSide, rightSide);
         } else if (have(NonTerminal.UNARY_OP)) {
+            // hard code ++ and --
             String unaryOP = expectRetrieve(NonTerminal.UNARY_OP).lexeme();
-            return new Assignment(lineNumber, charPosition, leftSide, unaryOP);
+            if (unaryOP == "++") {
+                rightSide = new Addition(lineNumber, charPosition, leftSide, new IntegerLiteral(lineNumber, charPosition, "1"));
+                return new Assignment(lineNumber, charPosition, leftSide, rightSide);
+            } else {
+                rightSide = new Subtraction(lineNumber, charPosition, leftSide, new IntegerLiteral(lineNumber, charPosition, "1"));
+                return new Assignment(lineNumber, charPosition, leftSide, rightSide);
+            }
+
         } else {
             expect(NonTerminal.ASSIGN);
             return null;
@@ -527,7 +538,7 @@ public class Compiler {
         while (have(NonTerminal.REL_OP)){
             Token tok = expectRetrieve(NonTerminal.REL_OP);
             rightSide = addExpr();
-            leftSide = new Relation(leftSide.lineNumber(), leftSide.charPosition(), leftSide, rightSide, tok.lexeme());
+            leftSide = new Relation(leftSide.lineNumber(), leftSide.charPosition(), leftSide, rightSide, tok);
         }
         return leftSide;
     }
@@ -610,7 +621,7 @@ public class Compiler {
         } else if (have(Token.Kind.NOT)) {
             // System.out.println("relExp" + lineNumber());
             Token tok = expectRetrieve(Token.Kind.NOT);
-            return LogicalNot(tok.lineNumber(), tok.charPosition(), relExpr());
+            return new LogicalNot(tok.lineNumber(), tok.charPosition(), relExpr());
             //return relExpr();
         } else if (have(Token.Kind.OPEN_PAREN)) {
             //System.out.println("realtion" + lineNumber());
@@ -620,13 +631,15 @@ public class Compiler {
             return funcCall();
         } else {
             expect(NonTerminal.GROUP_EXPR);
+
         }
+        return null;
     }
 
     // relation = "(" relExpr ")"
-    private Relation relation() {
+    private Expression relation() {
         expect(Token.Kind.OPEN_PAREN);
-        Relation relation = relExpr();
+        Expression relation = relExpr();
         expect(Token.Kind.CLOSE_PAREN);
         return relation;
     }
@@ -634,7 +647,9 @@ public class Compiler {
     // funCall = "call" ident "(" [ relExpr { "," relExpr } ] ")"
     private FunctionCall funcCall() {
         Token tok = expectRetrieve(Token.Kind.CALL);
-        String ident = expectRetrieve(Token.Kind.IDENT).lexeme;
+        Token ident = expectRetrieve(Token.Kind.IDENT);
+        Symbol funcSym = tryResolveVariable(ident);
+
         expect(Token.Kind.OPEN_PAREN);
 
         List<Expression> args = new ArrayList<>();
@@ -647,7 +662,9 @@ public class Compiler {
 
         expect(Token.Kind.CLOSE_PAREN);
 
-        return new FunctionCall(tok.lineNumber(), tok.charPosition(), tok.lexeme(), argumentList);
+
+
+        return new FunctionCall(tok.lineNumber(), tok.charPosition(), funcSym, argumentList);
     }
 
     // ifStat = "if" relation "then" statSeq [ "else" statSeq ] "fi"
@@ -656,7 +673,7 @@ public class Compiler {
 
         Token ifStat = expectRetrieve(Token.Kind.IF);
 
-        Relation rel = relation();
+        Expression rel = relation();
         expect(Token.Kind.THEN);
         StatementSequence thenBlock = statSeq();
         StatementSequence elseBlock = null;
@@ -675,7 +692,7 @@ public class Compiler {
         enterScope();
 
         Token whileStat = expectRetrieve(Token.Kind.WHILE);
-        Relation rel = relation();
+        Expression rel = relation();
         expect(Token.Kind.DO);
         StatementSequence doBlock = statSeq();
         expect(Token.Kind.OD);
@@ -686,14 +703,14 @@ public class Compiler {
     }
 
     // repeatStat = "repeat" statSeq "until" relation
-    private void repeatStat () {
+    private RepeatStatement repeatStat () {
 
         enterScope();
 
         Token repeatStat = expectRetrieve(Token.Kind.REPEAT);
         StatementSequence repeatBlock = statSeq();
         expect(Token.Kind.UNTIL);
-        Relation rel = relation();
+        Expression rel = relation();
 
         exitScope();
 
@@ -701,10 +718,10 @@ public class Compiler {
     }
 
     // returnStat = "return" [ relExpr ]
-    private void returnStat () {
+    private ReturnStatement returnStat () {
         Token tok = expectRetrieve(Token.Kind.RETURN);
-        Relation rel = relExpr();
-        return new ReturnStatment(tok.lineNumber(), tok.charPosition(), rel);
+        Expression rel = relExpr();
+        return new ReturnStatement(tok.lineNumber(), tok.charPosition(), rel);
     }
 
 

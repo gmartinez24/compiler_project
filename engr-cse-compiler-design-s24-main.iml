@@ -2,6 +2,7 @@
 <module version="4">
   <component name="AdditionalModuleElements">
     <content url="file://$MODULE_DIR$" dumb="true">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java/PA3_TypeChecking" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/notes" />
     </content>
   </component>
