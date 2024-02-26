@@ -15,7 +15,7 @@ public class TypeChecker implements NodeVisitor {
     
     private StringBuilder errorBuffer = new StringBuilder();
     private Symbol currentFunction;
-    private ArrayList<FuncType> functionList;
+    private ArrayList<FuncType> functionList = new ArrayList<>();
     private Type currType = new VoidType();
 
 
@@ -260,6 +260,9 @@ public class TypeChecker implements NodeVisitor {
         //Need to find a matching function
         //node.symbol().name()
         //FIND NAME, MATCH ARGUMENT
+        //loop through list of functions
+        //if name matches
+            //
 
     }
 
@@ -302,6 +305,9 @@ public class TypeChecker implements NodeVisitor {
     public void visit(ReturnStatement node) {
         System.out.println("ret stmt");
         node.relation().accept(this);
+        if(currentFunction.name().equals("main") && !(currType instanceof VoidType)){
+            reportError(node.lineNumber(), node.charPosition(), "Function main returns " + currType.getClass() +  " instead of void.");
+        }
         if(currentFunction.type() != currType){
             reportError(node.lineNumber(), node.charPosition(), "Function " + currentFunction.name() + " returns " + currType + " instead of " + currentFunction.type() + ".");
         }
@@ -345,9 +351,76 @@ public class TypeChecker implements NodeVisitor {
         for(Declaration d: node.declarationList()){
             if(d instanceof FunctionDeclaration){
                 FunctionDeclaration temp = (FunctionDeclaration) d;
+                FuncType newFunc = new FuncType();
+                newFunc.setName(temp.funcSym().name());
+                newFunc.setReturnType(temp.funcSym().type());
+                functionList.add(newFunc);
                 d.accept(this);
             }
         }
+    }
+
+    public void generateFunctions(){
+        //Adding default functions
+        // int readInt()
+        FuncType readIntType = new FuncType();
+        readIntType.setReturnType(new VoidType() );
+        readIntType.setName("readInt");
+        functionList.add(readIntType);
+
+
+        // float readFloat()
+        FuncType readFloatType = new FuncType();
+        readFloatType.setReturnType(new VoidType());
+        readFloatType.setName("readFloat");
+        functionList.add(readFloatType);
+
+
+        // bool readBool()
+        FuncType readBoolType = new FuncType();
+        readBoolType.setReturnType(new VoidType());
+        readBoolType.setName("readBoolType");
+        functionList.add(readBoolType);
+
+        // void printInt(int arg)
+        FuncType printIntType = new FuncType();
+        printIntType.params().append(new IntType());
+        printIntType.setReturnType(new VoidType() );
+        printIntType.setName("printInt");
+        functionList.add(printIntType);
+
+
+        // void printFloat(int arg)
+        FuncType printFloatType = new FuncType();
+        printFloatType.params().append(new IntType());
+        printFloatType.setReturnType(new VoidType());
+        printFloatType.setName("printFloat");
+        functionList.add(printFloatType);
+
+
+        // void printBool(bool arg)
+        FuncType printBoolType = new FuncType();
+        printBoolType.params().append(new IntType());
+        printBoolType.setReturnType(new VoidType());
+        printBoolType.setName("printBool");
+        functionList.add(printBoolType);
+
+        // void println()
+        FuncType printlnType = new FuncType();
+        printlnType.setReturnType(new VoidType());
+        printlnType.setName("println");
+        functionList.add(printlnType);
+
+
+        // void arrcpy(T[] dest, T[] src, int n)
+        FuncType arrcpyType = new FuncType();
+        arrcpyType.params().append(new ArrayType());
+        arrcpyType.params().append(new ArrayType());
+        arrcpyType.params().append(new IntType());
+        arrcpyType.setReturnType(new VoidType());
+        arrcpyType.setName("arrcpy");
+        functionList.add(arrcpyType);
+
     }
 
 
@@ -362,10 +435,11 @@ public class TypeChecker implements NodeVisitor {
     }
 
     public boolean check(AST ast){
+        generateFunctions();
         ast.getRoot().accept(this);
-        System.out.println(hasError());
-        System.out.println(errorReport());
-
+        for(int i =0; i<functionList.size(); i ++){
+            System.out.println(functionList.get(i).getName());
+        }
         return !hasError();
 
         //return hasError();

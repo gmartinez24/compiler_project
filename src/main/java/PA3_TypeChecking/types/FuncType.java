@@ -10,6 +10,18 @@ public class FuncType extends Type {
 
     }
 
+    public void setName(String name){
+        this.name = name;
+    }
+
+    public void setParams(TypeList params){
+        this.params = params;
+    }
+
+    public void setReturnType(Type returnType){
+        this.returnType = returnType;
+    }
+
     public String getName(){
         return name;
     }

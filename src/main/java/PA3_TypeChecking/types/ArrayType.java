@@ -8,14 +8,14 @@ public class ArrayType extends Type {
     Type elementType;
 
     // each dimension of the array is an index in the list where the value at an index is the length
-    List<Integer> dimensions;
+    public ArrayList<Integer> dimensions = new ArrayList<>();
 
     // function call
     public ArrayType() {
 
     }
 
-    public ArrayType (Type elementType, List<Integer> dimensions) {
+    public ArrayType (Type elementType, ArrayList<Integer> dimensions) {
         this.dimensions = dimensions;
         this.elementType = elementType;
     }

@@ -315,7 +315,7 @@ public class Compiler {
         Type type = null;
         if (have(Token.Kind.OPEN_BRACKET)) {
             int dimensionSize;
-            List<Integer> dimensions = new ArrayList<>();
+            ArrayList<Integer> dimensions = new ArrayList<>();
             while (accept(Token.Kind.OPEN_BRACKET)) {
                 dimensionSize = parseInt(expectRetrieve(Token.Kind.INT_VAL).lexeme());
                 dimensions.add(dimensionSize);
@@ -412,7 +412,7 @@ public class Compiler {
         Type type;
         if (have(Token.Kind.OPEN_BRACKET)) {
             // only making this an array list to match constructor for ArrayType
-            List<Integer> dimensions = new ArrayList<>();
+            ArrayList<Integer> dimensions = new ArrayList<>();
             while (accept(Token.Kind.OPEN_BRACKET)) {
                 dimensions.add(0);
                 expect(Token.Kind.CLOSE_BRACKET);
