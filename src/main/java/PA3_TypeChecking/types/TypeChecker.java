@@ -280,6 +280,7 @@ public class TypeChecker implements NodeVisitor {
         }
         else{
             if(count == 0){
+                //currType = new ErrorType("Call with args " + inputTypes + " matches no function signature.");
                 reportError(node.lineNumber(), node.charPosition(), "Call with args " + inputTypes + " matches no function signature.");
             }
             if(count > 1){
@@ -309,7 +310,7 @@ public class TypeChecker implements NodeVisitor {
         if(!(currType instanceof BoolType)){
             //System.out.println("while err");
             //currType = new ErrorType("WhileStat requires relation condition not " + currType);
-            reportError(node.lineNumber(), node.charPosition(), "WhileStat requires relation condition not " + currType);
+            reportError(node.lineNumber(), node.charPosition(), "WhileStat requires bool condition not " + currType + ".");
         }
         node.statSeq().accept(this);
     }
@@ -320,7 +321,7 @@ public class TypeChecker implements NodeVisitor {
         node.relation().accept(this);
         if(!(currType instanceof BoolType)){
            // System.out.println("repeat err");
-            reportError(node.lineNumber(), node.charPosition(), "WhileStat requires relation condition not" + currType);
+            reportError(node.lineNumber(), node.charPosition(), "RepeatStat requires bool condition not " + currType + ".");
         }
         node.repeatBlock().accept(this);
     }
