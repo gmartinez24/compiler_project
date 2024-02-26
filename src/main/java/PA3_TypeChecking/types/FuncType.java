@@ -1,14 +1,13 @@
 package types;
 
 public class FuncType extends Type {
-    private final TypeList params;
-    private final Type returnType;
-    private final String name;
+    private  TypeList params;
+    private  Type returnType;
+    private  String name;
 
-    public FuncType (TypeList params, Type returnType, String name) {
-        this.params = params;
-        this.returnType = returnType;
-        this.name = name;
+    public FuncType () {
+        this.params = new TypeList();
+
     }
 
     public String getName(){

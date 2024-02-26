@@ -77,6 +77,15 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(Identifier node) {
         System.out.println("ident");
+        if(!node.getIndexList().isEmpty()){
+            //We are working with an array here
+            //First, make sure each index is of type int literal
+            for(int i = 0; i < node.getIndexList().size(); i++){
+                node.getIndexList().get(i).accept(this);
+                System.out.println(currType);
+            }
+        }
+        System.out.println(node.getIndexList());
         currType = node.symbol().type();
     }
 
@@ -341,17 +350,6 @@ public class TypeChecker implements NodeVisitor {
         }
     }
 
-    private void generateFunctionList(DeclarationList functionDecList){
-        functionList.add(new FuncType())
-        if(node.empty()) return;
-        //Visit all the function declarations
-        for(Declaration d: node.declarationList()){
-            if(d instanceof FunctionDeclaration){
-                FunctionDeclaration temp = (FunctionDeclaration) d;
-                d.accept(this);
-            }
-        }
-    }
 
     @Override
     public void visit (Computation node) {
