@@ -17,6 +17,9 @@ public class ArgumentList extends Node {
         return this.args;
     }
 
+    public boolean empty(){
+        return args.isEmpty();
+    }
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);

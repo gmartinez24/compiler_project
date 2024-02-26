@@ -656,18 +656,23 @@ public class Compiler {
         expect(Token.Kind.OPEN_PAREN);
 
         List<Expression> args = new ArrayList<>();
-        Expression firstArg = relExpr();
         ArgumentList argumentList;
-        if(firstArg == null){
+        if (have(Token.Kind.CLOSE_PAREN)) {
+            //NO ARGS
             argumentList = new ArgumentList(lineNumber(), charPosition(), args);
+            expect(Token.Kind.CLOSE_PAREN);
+            return new FunctionCall(tok.lineNumber(), tok.charPosition(), funcSym, argumentList);
+
+
+
         }
-        else{
-            args.add(firstArg);
-            while (accept(Token.Kind.COMMA)) {
-                args.add(relExpr());
-            }
-            argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
+        Expression firstArg = relExpr();
+        args.add(firstArg);
+        while (accept(Token.Kind.COMMA)) {
+            args.add(relExpr());
         }
+        argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
+
 
 
         expect(Token.Kind.CLOSE_PAREN);

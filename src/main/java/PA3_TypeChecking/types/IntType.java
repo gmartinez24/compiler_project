@@ -37,6 +37,13 @@ public class IntType extends Type {
         }
         return new ErrorType("Cannot raise " + that + " to " + this + ".");
     }
+
+    public Type mod (Type that) {
+        if (that instanceof IntType) {
+            return this;
+        }
+        return new ErrorType("Cannot get modulus of " + that + " with " + this + ".");
+    }
     //Don't need to implement boolean operators, as super already handles those cases
 
     public String toString() {

@@ -100,7 +100,8 @@ public class SymbolTable {
         //throw new RuntimeException("implement lookup variable");
     }
 
-    // insert name in SymbolTable
+    //
+    //  5name in SymbolTable
     public Symbol insert (Symbol sym) throws RedeclarationError {
         //If the lookup throws an error, doesn't exist so we can insert
         //Changing this algo

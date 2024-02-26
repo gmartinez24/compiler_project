@@ -22,7 +22,10 @@ public abstract class Type {
     public Type pow (Type that) {
         return new ErrorType("Cannot subtract " + that + " from " + this + ".");
     }
-    // Including this, not sure why it wasn't here initially
+    public Type mod (Type that) {
+        return new ErrorType("Cannot subtract " + that + " from " + this + ".");
+    }
+    // Including these , not sure why it wasn't here initially
 
     // boolean
     public Type and (Type that) {
