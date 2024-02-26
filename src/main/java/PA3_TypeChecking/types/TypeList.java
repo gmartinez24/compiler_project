@@ -33,4 +33,15 @@ public class TypeList extends Type implements Iterable<Type> {
     public Type at(int index) {
         return list.get(index);
     }
+
+    public String toString(){
+        String str = "Typelist(";
+        for(Type type: list){
+            str += type.toString();
+            str += ",";
+        }
+        str = str.substring(0, str.length() -1);
+        str += ")";
+        return str;
+    }
 }
