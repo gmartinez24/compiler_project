@@ -31,4 +31,16 @@ public class FuncType extends Type {
 
         return type + "->" + returnType.toString();
     }
+
+    public Type call(TypeList args){
+        if(params.length() != args.length()){
+            return new ErrorType("Cannot call " + this + " using " + args + ".");
+        }
+        for(int i = 0; i < args.length(); i++){
+            if(!params.at(i).getClass().equals( args.at(i).getClass())){
+                return new ErrorType("Cannot call " + this + " using " + args + ".");
+            }
+        }
+        return returnType;
+    }
 }

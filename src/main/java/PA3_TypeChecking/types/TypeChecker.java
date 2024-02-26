@@ -16,8 +16,9 @@ public class TypeChecker implements NodeVisitor {
     //We will traverse the tree and commit type checking via the specific type classes
     //In the types directory.
     
-    private StringBuilder errorBuffer;
+    private StringBuilder errorBuffer = new StringBuilder();
     private Symbol currentFunction;
+
 
     /* 
      * Useful error strings:
@@ -158,12 +159,16 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(ReturnStatement node) {
-
+        //We need to get the return statements type and match to the func return type
+        //Need to process relation, make sure it's type == return type of function statement
+        if(currentFunction.type().getClass() == )
     }
 
     @Override
     public void visit(StatementSequence node) {
-
+        for(Statement s: node.getStatements()){
+            s.accept(this);
+        }
     }
 
     @Override
@@ -173,26 +178,41 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(FunctionBody node) {
-
+        //Don't need to typecheck variable decs
+        System.out.println(currentFunction.toString());
+        node.funcSeq().accept(this);
     }
 
     @Override
     public void visit(FunctionDeclaration node) {
-
+        //Not checking functions at the moment, just going to statSeq
+        currentFunction = node.funcSym();
+        node.body().accept(this);
     }
 
     @Override
     public void visit(DeclarationList node) {
-
+        if(node.empty()) return;
+        //Visit all the function declerations
+        for(Declaration d: node.declarationList()){
+            if(d instanceof FunctionDeclaration){
+                d.accept(this);
+            }
+        }
     }
 
     @Override
     public void visit (Computation node) {
-        throw new RuntimeException("implement visit (Computation)");
+        //Don't need to error check vars declarations list, but will need to visit functions
+        if(node.functions() != null){
+            node.functions().accept(this);
+        }
+        node.mainStatementSequence().accept(this);
     }
 
     public boolean check(AST ast){
-        // TODO -> Write function
-        return false;
+        ast.getRoot().accept(this);
+        return hasError();
+
     }
 }

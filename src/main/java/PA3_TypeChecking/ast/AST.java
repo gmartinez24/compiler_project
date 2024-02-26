@@ -30,4 +30,7 @@ public class AST {
 
 
     }
+    public Node getRoot(){
+        return root;
+    }
 }

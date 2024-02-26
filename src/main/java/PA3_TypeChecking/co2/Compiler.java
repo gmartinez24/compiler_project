@@ -512,7 +512,8 @@ public class Compiler {
         } else if (have(NonTerminal.UNARY_OP)) {
             // hard code ++ and --
             String unaryOP = expectRetrieve(NonTerminal.UNARY_OP).lexeme();
-            if (unaryOP == "++") {
+            System.out.println(unaryOP);
+            if (unaryOP.equals("++")) {
                 rightSide = new Addition(lineNumber, charPosition, leftSide, new IntegerLiteral(lineNumber, charPosition, "1"));
                 return new Assignment(lineNumber, charPosition, leftSide, rightSide);
             } else {
