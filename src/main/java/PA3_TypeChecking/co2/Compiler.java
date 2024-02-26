@@ -517,7 +517,8 @@ public class Compiler {
         } else if (have(NonTerminal.UNARY_OP)) {
             // hard code ++ and --
             String unaryOP = expectRetrieve(NonTerminal.UNARY_OP).lexeme();
-            if (unaryOP == "++") {
+            System.out.println(unaryOP);
+            if (unaryOP.equals("++")) {
                 rightSide = new Addition(lineNumber, charPosition, leftSide, new IntegerLiteral(lineNumber, charPosition, "1"));
                 return new Assignment(lineNumber, charPosition, leftSide,"++", rightSide);
             } else {
@@ -658,18 +659,24 @@ public class Compiler {
         expect(Token.Kind.OPEN_PAREN);
 
         List<Expression> args = new ArrayList<>();
-        Expression firstArg = relExpr();
         ArgumentList argumentList;
-        if(firstArg instanceof Relation && firstArg.lhs() == null){
+
+        if (have(Token.Kind.CLOSE_PAREN)) {
+            //NO ARGS
             argumentList = new ArgumentList(lineNumber(), charPosition(), args);
+            expect(Token.Kind.CLOSE_PAREN);
+            return new FunctionCall(tok.lineNumber(), tok.charPosition(), funcSym, argumentList);
+
+
+
         }
-        else{
-            args.add(firstArg);
-            while (accept(Token.Kind.COMMA)) {
-                args.add(relExpr());
-            }
-            argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
+        Expression firstArg = relExpr();
+        args.add(firstArg);
+        while (accept(Token.Kind.COMMA)) {
+            args.add(relExpr());
         }
+        argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
+
 
 
         expect(Token.Kind.CLOSE_PAREN);

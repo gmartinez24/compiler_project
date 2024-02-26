@@ -1,13 +1,17 @@
 package types;
 
 public class FuncType extends Type {
-    // last element in params in return type
-    private TypeList params;
-    private Type returnType;
+    private  TypeList params;
+    private  Type returnType;
+    private  String name;
 
     public FuncType () {
-        params = new TypeList();
-        //returnType = params.at(params.length() - 1);
+        this.params = new TypeList();
+
+    }
+
+    public String getName(){
+        return name;
     }
 
     public TypeList params() {
@@ -30,5 +34,19 @@ public class FuncType extends Type {
         }
 
         return type + "->" + returnType.toString();
+    }
+
+    public Type call(TypeList args){
+        if(params.length() != args.length()){
+            return new ErrorType("Cannot call " + this + " using " + args + ".");
+        }
+        int count = 0;
+        for(int i = 0; i < args.length(); i++){
+            if(!params.at(i).getClass().equals( args.at(i).getClass())){
+                return new ErrorType("Call with args " + args.toString() + " matches multiple function signatures.");
+            }
+        }
+        return returnType;
+
     }
 }

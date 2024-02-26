@@ -18,6 +18,7 @@ public class FunctionDeclaration extends Node implements Declaration{
         identSymbol = new Symbol(type, ident, lineNum, charPos);
         this.params = params;
         this.body = funcBody;
+        this.type = type;
     }
 
     public String function() {
@@ -41,6 +42,9 @@ public class FunctionDeclaration extends Node implements Declaration{
         return body;
     }
 
+    public Type getType(){
+        return type;
+    }
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
