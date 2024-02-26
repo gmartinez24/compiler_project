@@ -82,13 +82,16 @@ public class TypeChecker implements NodeVisitor {
     public void visit(LogicalNot node) {
         node.expression().accept(this);
         Type negateType = currType;
-        negateType.not();
+        if(negateType.not() instanceof BoolType){
+            reportError(node.lineNumber(), node.charPosition(), negateType.not().toString());
+        }
 
     }
 
     @Override
     public void visit(Power node) {
-
+        node.lhs().accept(this);
+        Type rhs =
     }
 
     @Override

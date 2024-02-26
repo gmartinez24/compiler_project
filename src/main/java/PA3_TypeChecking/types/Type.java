@@ -19,6 +19,11 @@ public abstract class Type {
         return new ErrorType("Cannot subtract " + that + " from " + this + ".");
     }
 
+    public Type pow (Type that) {
+        return new ErrorType("Cannot subtract " + that + " from " + this + ".");
+    }
+    // Including this, not sure why it wasn't here initially
+
     // boolean
     public Type and (Type that) {
         return new ErrorType("Cannot compute " + this + " and " + that + ".");

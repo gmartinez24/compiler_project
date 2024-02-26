@@ -30,6 +30,13 @@ public class IntType extends Type {
         }
         return new ErrorType("Cannot subtract " + that + " from " + this + ".");
     }
+
+    public Type pow (Type that) {
+        if(that instanceof IntType){
+            return this;
+        }
+        return new ErrorType("Cannot raise " + that + " to " + this + ".");
+    }
     //Don't need to implement boolean operators, as super already handles those cases
 
     public String toString() {
