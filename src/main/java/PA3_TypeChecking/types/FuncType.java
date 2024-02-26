@@ -20,6 +20,10 @@ public class FuncType extends Type {
     public void setReturnType(Type returnType){
         this.returnType = returnType;
     }
+
+    public Type getReturnType() {
+        return returnType;
+    }
     public String getName(){
         return name;
     }
@@ -27,6 +31,8 @@ public class FuncType extends Type {
     public TypeList params() {
         return this.params;
     }
+
+    public void addParam(Type type) {params.add(type);}
     public String toString() {
         String type = "(";
         for ( int i = 0; i < params.length() - 1; i++) {

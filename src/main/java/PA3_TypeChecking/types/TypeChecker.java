@@ -264,10 +264,12 @@ public class TypeChecker implements NodeVisitor {
         }
 
         int count = 0;
+        int index = -1;
         for(int i = 0; i < functionList.size(); i++){
             //System.out.println(node.symbol().name());
             if(!(functionList.get(i).call(inputTypes) instanceof ErrorType) && node.symbol().name().equals(functionList.get(i).getName())){
                 count++;
+                index = i;
             }
         }
         if(inputTypes.length() == 0){
@@ -277,14 +279,20 @@ public class TypeChecker implements NodeVisitor {
             if(count > 1){
                 reportError(node.lineNumber(), node.charPosition(), "Call with args TypeList()  matches multiple function signatures.");
             }
+            if (count == 1) {
+                currType = functionList.get(index).getReturnType();
+            }
         }
         else{
             if(count == 0){
-                //currType = new ErrorType("Call with args " + inputTypes + " matches no function signature.");
+                currType = new ErrorType("Call with args " + inputTypes + " matches no function signature.");
                 reportError(node.lineNumber(), node.charPosition(), "Call with args " + inputTypes + " matches no function signature.");
             }
             if(count > 1){
                 reportError(node.lineNumber(), node.charPosition(), "Call with args " + inputTypes + " matches multiple function signatures.");
+            }
+            if (count == 1) {
+                currType = functionList.get(index).getReturnType();
             }
         }
 
@@ -318,12 +326,13 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(RepeatStatement node) {
 //        System.out.println("rep stmt");
+        node.repeatBlock().accept(this);
         node.relation().accept(this);
         if(!(currType instanceof BoolType)){
            // System.out.println("repeat err");
             reportError(node.lineNumber(), node.charPosition(), "RepeatStat requires bool condition not " + currType + ".");
         }
-        node.repeatBlock().accept(this);
+
     }
 
     @Override
@@ -334,8 +343,8 @@ public class TypeChecker implements NodeVisitor {
         if(currentFunction.name().equals("main") && !(currType instanceof VoidType)){
             reportError(node.lineNumber(), node.charPosition(), "Function main returns " + currType +  " instead of void.");
         }
-         else if(currentFunction.type().getClass() != currType.getClass()){
-            reportError(node.lineNumber(), node.charPosition(), "Function " + currentFunction.name() + " returns " + currType + " instead of " + currentFunction.type() + ".");
+         else if(!(currType instanceof VoidType) && ((FuncType)currentFunction.type()).getReturnType().getClass() != currType.getClass() ){
+            reportError(node.lineNumber(), node.charPosition(), "Function " + currentFunction.name() + " returns " + currType + " instead of " + ((FuncType)currentFunction.type()).getReturnType() + ".");
         }
 
     }
@@ -377,8 +386,13 @@ public class TypeChecker implements NodeVisitor {
         for(Declaration d: node.declarationList()){
             if(d instanceof FunctionDeclaration){
                 FunctionDeclaration temp = (FunctionDeclaration) d;
-                d.accept(this);
-            }
+                FuncType newFunc = new FuncType();
+                newFunc.setName(temp.funcSym().name());
+                for(Symbol p: temp.params()){
+                    newFunc.addParam(p.type());
+                }
+                newFunc.setReturnType(temp.getType());
+                d.accept(this);}
         }
     }
 
@@ -387,21 +401,21 @@ public class TypeChecker implements NodeVisitor {
         // int readInt()
         functionList = new ArrayList<>();
         FuncType readIntType = new FuncType();
-        readIntType.setReturnType(new VoidType() );
+        readIntType.setReturnType(new IntType() );
         readIntType.setName("readInt");
         functionList.add(readIntType);
 
 
         // float readFloat()
         FuncType readFloatType = new FuncType();
-        readFloatType.setReturnType(new VoidType());
+        readFloatType.setReturnType(new FloatType());
         readFloatType.setName("readFloat");
         functionList.add(readFloatType);
 
 
         // bool readBool()
         FuncType readBoolType = new FuncType();
-        readBoolType.setReturnType(new VoidType());
+        readBoolType.setReturnType(new BoolType());
         readBoolType.setName("readBool");
         functionList.add(readBoolType);
 
