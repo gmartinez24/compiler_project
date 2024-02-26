@@ -535,7 +535,28 @@ public class Interpreter {
 
     public String designator(Expression expr) {
         Identifier ident = (Identifier) expr;
-        return ident.symbol().name();
+        String desig = ident.symbol().name();
+        Symbol identSym = ident.symbol();
+        List<Expression> indexList = ident.indexList();
+        if (indexList != null) {
+            for (Expression index : indexList) {
+                desig+="[";
+                desig+=relExpr(index);
+                desig+="]";
+            }
+            if (!(intMap.containsKey(desig) || floatMap.containsKey(desig) || boolMap.containsKey(desig))) {
+                if (((ArrayType)identSym.type()).elementType() instanceof IntType) {
+                    intMap.put(desig, "");
+                } else if (((ArrayType)identSym.type()).elementType() instanceof FloatType) {
+                    floatMap.put(desig, "");
+                } else if (((ArrayType)identSym.type()).elementType() instanceof BoolType){
+                    boolMap.put(desig, "");
+                }
+            }
+
+        }
+
+        return desig;
 
         // TODO: Handle arrays
     }
@@ -713,6 +734,7 @@ public class Interpreter {
     private void returnStatement(ReturnStatement returnStatement) {
         // checking for empty return statement
         if (returnStatement.relation().lhs() != null) {
+            System.exit(0);
             return;
         }
     }

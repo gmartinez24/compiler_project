@@ -14,6 +14,9 @@ public class ArrayType extends Type {
     public ArrayType() {
 
     }
+    public Type elementType() {
+        return elementType;
+    }
 
     public ArrayType (Type elementType, List<Integer> dimensions) {
         this.dimensions = dimensions;

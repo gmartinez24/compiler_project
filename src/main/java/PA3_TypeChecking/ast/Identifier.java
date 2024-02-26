@@ -22,6 +22,8 @@ public class Identifier extends Node implements Expression{
         return identSymbol;
     }
 
+    public List<Expression> indexList() {return indexList;}
+
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
