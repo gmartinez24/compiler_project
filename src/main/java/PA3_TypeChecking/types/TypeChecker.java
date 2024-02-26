@@ -77,7 +77,7 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(Identifier node) {
         System.out.println("ident");
-        if(!node.getIndexList().isEmpty()){
+        if(node.getIndexList() != null && !node.getIndexList().isEmpty()){
             //We are working with an array here
             //First, make sure each index is of type int literal
             for(int i = 0; i < node.getIndexList().size(); i++){
@@ -175,7 +175,7 @@ public class TypeChecker implements NodeVisitor {
         Type rhs = currType;
         if(lhs.add(rhs) instanceof ErrorType){
             System.out.println("add err");
-            reportError(node.lineNumber(), node.charPosition(), lhs.add(rhs).toString());
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) lhs.add(rhs)).toString());
         }
     }
 
@@ -366,7 +366,7 @@ public class TypeChecker implements NodeVisitor {
         System.out.println(hasError());
         System.out.println(errorReport());
 
-        return hasError();
+        return !hasError();
 
         //return hasError();
 

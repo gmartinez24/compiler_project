@@ -9,4 +9,8 @@ public class ErrorType extends Type {
     public ErrorType (String msg) {
         this.message = msg;
     }
+
+    public String toString(){
+        return message;
+    }
 }
