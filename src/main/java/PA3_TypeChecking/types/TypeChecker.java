@@ -18,6 +18,7 @@ public class TypeChecker implements NodeVisitor {
     
     private StringBuilder errorBuffer = new StringBuilder();
     private Symbol currentFunction;
+    private Type currType = new VoidType();
 
 
     /* 
@@ -59,26 +60,29 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(BoolLiteral node) {
-
+        currType = new BoolType();
     }
 
     @Override
     public void visit(IntegerLiteral node) {
-
+        currType = new IntType();
     }
 
     @Override
     public void visit(FloatLiteral node) {
-
+        currType = new FloatType();
     }
 
     @Override
     public void visit(Identifier node) {
-
+        currType = node.symbol().type();
     }
 
     @Override
     public void visit(LogicalNot node) {
+        node.expression().accept(this);
+        Type negateType = currType;
+        negateType.not();
 
     }
 
@@ -193,7 +197,7 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(DeclarationList node) {
         if(node.empty()) return;
-        //Visit all the function declerations
+        //Visit all the function declarations
         for(Declaration d: node.declarationList()){
             if(d instanceof FunctionDeclaration){
                 d.accept(this);
