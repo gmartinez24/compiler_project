@@ -404,10 +404,10 @@ public class Interpreter {
                 int newVal = (int) Math.pow(parseInt(lhs), parseInt(rhs));
                 return Integer.toString(newVal);
             }
-//            if (type == 2) {
-//                float newVal = (int) Math.pow(parseFloat(lhs) % parseFloat(rhs);
-//                return Float.toString(newVal);
-//            }
+            if (type == 2) {
+                float newVal = (int) Math.pow(parseFloat(lhs), parseFloat(rhs));
+                return Float.toString(newVal);
+            }
         } else if (op.equals("and") && type == 3) {
             boolean newVal = Boolean.parseBoolean(lhs) && Boolean.parseBoolean(rhs);
             return Boolean.toString(newVal);
