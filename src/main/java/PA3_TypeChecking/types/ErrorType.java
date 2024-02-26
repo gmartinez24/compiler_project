@@ -11,6 +11,10 @@ public class ErrorType extends Type {
     }
 
     public String toString(){
+        return "ErrorType(" + message + ")";
+    }
+
+    public String message() {
         return message;
     }
 }

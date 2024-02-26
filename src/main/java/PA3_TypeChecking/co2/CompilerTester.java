@@ -76,14 +76,14 @@ public class CompilerTester {
             System.out.println(c.errorReport());
             System.exit(-8);
         }
-//
-//        types.TypeChecker tc = new types.TypeChecker();
-//
-//        if (!tc.check(ast)) {
-//            System.out.println("Error type-checking file.");
-//            System.out.println(tc.errorReport());
-//            System.exit(-4);
-//        }
+
+        types.TypeChecker tc = new types.TypeChecker();
+
+        if (!tc.check(ast)) {
+            System.out.println("Error type-checking file.");
+            System.out.println(tc.errorReport());
+            System.exit(-4);
+        }
 
         if (cmd.hasOption("int")) { // Interpreter mode - at this point the program is well-formed
             c.interpret(in);

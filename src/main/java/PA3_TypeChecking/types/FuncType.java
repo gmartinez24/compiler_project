@@ -9,7 +9,17 @@ public class FuncType extends Type {
         this.params = new TypeList();
 
     }
+    public void setName(String name){
+        this.name = name;
+    }
 
+    public void setParams(TypeList params){
+        this.params = params;
+    }
+
+    public void setReturnType(Type returnType){
+        this.returnType = returnType;
+    }
     public String getName(){
         return name;
     }
@@ -37,13 +47,18 @@ public class FuncType extends Type {
     }
 
     public Type call(TypeList args){
-        if(params.length() != args.length()){
-            return new ErrorType("Cannot call " + this + " using " + args + ".");
+        if(args == null && params.length() != 0){
+            return returnType;
         }
-        int count = 0;
+        if(args == null &&  params.length() != 0){
+            return new ErrorType("Cannot match function with Typelist().");
+        }
+        if(args == null){
+        }
+
         for(int i = 0; i < args.length(); i++){
             if(!params.at(i).getClass().equals( args.at(i).getClass())){
-                return new ErrorType("Call with args " + args.toString() + " matches multiple function signatures.");
+                return new ErrorType("error here");
             }
         }
         return returnType;

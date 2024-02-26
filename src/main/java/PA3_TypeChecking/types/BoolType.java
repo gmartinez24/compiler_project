@@ -2,7 +2,7 @@ package types;
 
 public class BoolType extends Type {
     public String toString() {
-        return "boolean";
+        return "bool";
     }
 
     public Type and (Type that) {
