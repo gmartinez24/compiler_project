@@ -3,7 +3,7 @@ import java.util.Stack;
 public class AST {
 
     // private members
-    private Node root;
+    private Computation root;
 
     // TODO: Create AST structure of your choice
     /*
@@ -18,6 +18,10 @@ public class AST {
         root = computation;
         // Root = parser.Parse;
         //throw new RuntimeException("implement AST");
+    }
+
+    public Computation root() {
+        return root;
     }
 
     public String printPreOrder(){

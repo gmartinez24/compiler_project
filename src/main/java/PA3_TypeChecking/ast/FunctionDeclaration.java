@@ -12,6 +12,7 @@ public class FunctionDeclaration extends Node implements Declaration{
     private FunctionBody body;
 
 
+
     public FunctionDeclaration(int lineNum, int charPos, Type type, String ident, List<Symbol> params, FunctionBody funcBody){
         super(lineNum, charPos);
         identSymbol = new Symbol(type, ident, lineNum, charPos);
@@ -30,6 +31,7 @@ public class FunctionDeclaration extends Node implements Declaration{
     public Symbol funcSym(){
         return identSymbol;
     }
+    public Symbol symbol() {return identSymbol;}
 
     public List<Symbol> params(){
         return params;

@@ -1,164 +1,71 @@
 package co2;
-
+import ast.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
+import types.*;
+
+import javax.imageio.stream.FileImageInputStream;
+
+import static java.lang.Float.parseFloat;
+import static java.lang.Integer.parseInt;
+import static java.lang.Integer.reverse;
 
 public class Interpreter {
+    AST ast;
 
-    // Error Reporting ============================================================
-    private StringBuilder errorBuffer = new StringBuilder();
+    BufferedReader in;
 
-    private String reportSyntaxError (NonTerminal nt) {
-        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected a token from " + nt.name() + " but got " + currentToken.kind + ".]";
-        errorBuffer.append(message + "\n");
-        return message;
-    }
+    List<String> values = new ArrayList<>();
 
-    private String reportSyntaxError (Token.Kind kind) {
-        String message = "SyntaxError(" + lineNumber() + "," + charPosition() + ")[Expected " + kind + " but got " + currentToken.kind + ".]";
-        errorBuffer.append(message + "\n");
-        return message;
-    }
+    int argsRead = 0;
 
-    public String errorReport () {
-        return errorBuffer.toString();
-    }
+    HashMap<String, String> intMap = new HashMap<>();
+    HashMap<String, String> floatMap = new HashMap<>();
+    HashMap<String, String> boolMap = new HashMap<>();
 
-    public boolean hasError () {
-        return errorBuffer.length() != 0;
-    }
+    public Interpreter(AST ast, InputStream in) {
+        this.ast = ast;
+        this.in  = new BufferedReader(new InputStreamReader(in));
 
-    private class QuitParseException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-        public QuitParseException (String errorMessage) {
-            super(errorMessage);
-        }
-    }
+        String line;
 
-    private int lineNumber () {
-        return currentToken.lineNumber();
-    }
-
-    private int charPosition () {
-        return currentToken.charPosition();
-    }
-
-// Parser ============================================================
-    private Scanner scanner;
-    private Token currentToken;
-
-    private BufferedReader reader;
-    private StringTokenizer st;
-
-    // TODO: add maps from Token IDENT to int/float/bool
-
-    public Interpreter(co2.Scanner scanner, InputStream in) {
-        this.scanner = scanner;
-        currentToken = this.scanner.next();
-
-        reader = new BufferedReader(new InputStreamReader(in));
-        st = null;
-    }
-
-    public void parse () {
         try {
-            computation();
-        }
-        catch (QuitParseException q) {
-            // too verbose
-            // errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
-            // errorBuffer.append("[Could not complete parsing.]");
-        }
-    }
-
-// Helper Methods =============================================================
-    private boolean have (Token.Kind kind) {
-        return currentToken.is(kind);
-    }
-
-    private boolean have (NonTerminal nt) {
-        return nt.firstSet().contains(currentToken.kind);
-    }
-
-    private boolean accept (Token.Kind kind) {
-        if (have(kind)) {
-            try {
-                currentToken = scanner.next();
+            while((line = this.in.readLine()) != null) {
+                String[] temp = line.split(" ");
+                values.addAll(Arrays.asList(temp));
             }
-            catch (NoSuchElementException e) {
-                if (!kind.equals(Token.Kind.EOF)) {
-                    String errorMessage = reportSyntaxError(kind);
-                    throw new QuitParseException(errorMessage);
-                }
-            }
-            return true;
+        } catch (IOException e) {
+            System.out.println("Error with input in interpreter");
         }
-        return false;
+
     }
 
-    private boolean accept (NonTerminal nt) {
-        if (have(nt)) {
-            currentToken = scanner.next();
-            return true;
-        }
-        return false;
+    public void interpret() {
+        computation();
     }
 
-    private boolean expect (Token.Kind kind) {
-        if (accept(kind)) {
-            return true;
-        }
-        String errorMessage = reportSyntaxError(kind);
-        throw new QuitParseException(errorMessage);
-    }
-
-    private boolean expect (NonTerminal nt) {
-        if (accept(nt)) {
-            return true;
-        }
-        String errorMessage = reportSyntaxError(nt);
-        throw new QuitParseException(errorMessage);
-    }
-
-    private Token expectRetrieve (Token.Kind kind) {
-        Token tok = currentToken;
-        if (accept(kind)) {
-            return tok;
-        }
-        String errorMessage = reportSyntaxError(kind);
-        throw new QuitParseException(errorMessage);
-    }
-
-    private Token expectRetrieve (NonTerminal nt) {
-        Token tok = currentToken;
-        if (accept(nt)) {
-            return tok;
-        }
-        String errorMessage = reportSyntaxError(nt);
-        throw new QuitParseException(errorMessage);
-    }
-
-// Pre-defined Functions ======================================================
     private String nextInput () {
-        while (st == null || !st.hasMoreElements()) {
-            try {
-                st = new StringTokenizer(reader.readLine());
-            }
-            catch (IOException e) {
-                throw new QuitParseException("Interepter: Couldn't read data file\n" + e.getMessage());
-            }
+//        while (st == null || !st.hasMoreElements()) {
+//                st = new StringTokenizer(reader.readLine());
+        if (argsRead < values.size()) {
+            String retStr =  values.get(argsRead);
+            argsRead++;
+            return retStr;
+
+        } else {
+            throw new RuntimeException("Not enough args");
         }
-        return st.nextToken();
     }
 
     private int readInt () {
         System.out.print("int? ");
-        return Integer.parseInt(nextInput());
+        return parseInt(nextInput());
     }
 
     private float readFloat () {
         System.out.print("float? ");
-        return Float.parseFloat(nextInput());
+        return parseFloat(nextInput());
     }
 
     private boolean readBool () {
@@ -182,293 +89,633 @@ public class Interpreter {
         System.out.println();
     }
 
-// Grammar Rules ==============================================================
-
-    // function for matching rule that only expects nonterminal's FIRST set
-    private Token matchNonTerminal (NonTerminal nt) {
-        return expectRetrieve(nt);
-    }
-
-    // TODO: implement operators and type grammar rules
-
-    // literal = integerLit | floatLit
-    private Token literal () {
-        return matchNonTerminal(NonTerminal.LITERAL);
-    }
-
-    // designator = ident { "[" relExpr "]" }
-    private void designator () {
-        int lineNum = lineNumber();
-        int charPos = charPosition();
-
-        Token ident = expectRetrieve(Token.Kind.IDENT);
-        while (accept(Token.Kind.OPEN_BRACKET)) {
-            relExpr();
-            accept(Token.Kind.CLOSE_BRACKET);
+    private void insertMap(int map, String name, String value) {
+        if (map == 1) {
+            intMap.put(name, value);
+        } else if (map == 2) {
+            floatMap.put(name, value);
+        } else if (map == 3) {
+            boolMap.put(name, value);
         }
-        // TODO: get designated value from appropriate map from IDENT to value
-        
     }
 
-    // TODO: implement remaining grammar rules
-
-    // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
-    private void computation () {
-
-        expect(Token.Kind.MAIN);
-
-        // deal with varDecl 0 or many
-        while (have(NonTerminal.VAR_DECL)) {
-            varDecl();
+    private boolean isIntLiteral(String expr) {
+        try {
+            Integer.parseInt(expr);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
+    }
 
-        // deal with funcDecl 0 or many
-        while (have(NonTerminal.FUNC_DECL)) {
-            funcDecl();
+    private boolean isFloatLiteral(String expr) {
+        try {
+            Float.parseFloat(expr);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-
-        expect(Token.Kind.OPEN_BRACE);
-        statSeq();
-        expect(Token.Kind.CLOSE_BRACE);
-        expect(Token.Kind.PERIOD);
     }
 
-    // varDecl = typeDecl ident {"," ident} ";"
-    private void varDecl() {
-        typeDecl();
-        do {
-            expect(Token.Kind.IDENT);
-        } while(accept(Token.Kind.COMMA));
-        expect(Token.Kind.SEMICOLON);
-    }
-
-    // typeDecl = type  { "[" integerLit "]" }
-    private void typeDecl() {
-        expect(NonTerminal.TYPE_DECL);
-        while (accept(Token.Kind.OPEN_BRACKET)) {
-            expect(Token.Kind.INT_VAL);
-            expect(Token.Kind.CLOSE_BRACKET);
+    private boolean isBoolLiteral(String expr) {
+        try {
+           // Boolean.parseBoolean(expr);
+            return expr.equals("true") || expr.equals("false");
+        } catch (Exception e) {
+            return false;
         }
-//        } else {
-//            // may need to change this to reflect something other than expecting INT
-//            expect(Token.Kind.INT);
-//        }
-
-
     }
 
-    // funcDecl = "function" ident formalParam ":" ("void" | type ) funcBody
-    private void funcDecl() {
-        expect(Token.Kind.FUNC);
-        expect(Token.Kind.IDENT);
-        formalParam();
-        expect(Token.Kind.COLON);
+    private void assignment(String name, String op, String expr) {
+        String currValue = "";
+        String newVal = "";
 
-        // searches for either a VOID or a TYPE
-        if (!(accept(Token.Kind.VOID) || accept(NonTerminal.TYPE_DECL))) {
-            // may need to change this to reflect something other than expecting VOID
-            expect(NonTerminal.FUNC_DECL);
+        int type = 0;
+
+        // search maps for given name
+        if (intMap.containsKey(name)) {
+            type = 1;
+            currValue = intMap.get(name);
+        } else if (floatMap.containsKey(name)) {
+            type = 2;
+            currValue = floatMap.get(name);
+        } else if (boolMap.containsKey(name)) {
+            type = 3;
+            currValue = boolMap.get(name);
         }
 
-        funcBody();
+        if (op.equals("=")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                intMap.put(name, expr);
+            } else if (type == 2) {
+                if (!isFloatLiteral(expr)) {
+                    expr = floatMap.get(expr);
+                }
+                floatMap.put(name, expr);
+            } else if (type == 3) {
+                if (!isBoolLiteral(expr)) {
+                    expr = boolMap.get(expr);
+                }
+                boolMap.put(name, expr);
+            }
+            // tree is set up to handle += and ++ the same
+        } else if (op.equals("+=") || op.equals("++")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                if (!isIntLiteral(currValue)) {
+                    currValue = intMap.get(currValue);
+                }
+                int newInt = parseInt(currValue) + parseInt(expr);
+                newVal = Integer.toString(newInt);
+                intMap.put(name, newVal);
+            } else if (type == 2) {
+                if (!isFloatLiteral(expr)) {
+                    expr = floatMap.get(expr);
+                }
+                if (!isFloatLiteral(currValue)) {
+                    currValue = floatMap.get(currValue);
+                }
+                float newFloat = parseFloat(currValue) + parseFloat(expr);
+                newVal = Float.toString(newFloat);
+                floatMap.put(name, newVal);
+            } else if (type == 3) {
+                System.out.println("Cannot add to a boolean type");
+            }
+            // tree is set up to handle -= and -- the same
+        } else if (op.equals("-=") || op.equals("--")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                if (!isIntLiteral(currValue)) {
+                    currValue = intMap.get(currValue);
+                }
+                int newInt = parseInt(currValue) - parseInt(expr);
+                newVal = Integer.toString(newInt);
+                intMap.put(name, newVal);
+            } else if (type == 2) {
+                if (!isFloatLiteral(expr)) {
+                    expr = floatMap.get(expr);
+                }
+                if (!isFloatLiteral(currValue)) {
+                    currValue = floatMap.get(currValue);
+                }
+                float newFloat = parseFloat(currValue) - parseFloat(expr);
+                newVal = Float.toString(newFloat);
+                floatMap.put(name, newVal);
+            } else if (type == 3) {
+                System.out.println("Cannot subtract from a boolean type");
+            }
+        } else if (op.equals("*=")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                if (!isIntLiteral(currValue)) {
+                    currValue = intMap.get(currValue);
+                }
+                int newInt = parseInt(currValue) * parseInt(expr);
+                newVal = Integer.toString(newInt);
+                intMap.put(name, newVal);
+            } else if (type == 2) {
+                if (!isFloatLiteral(expr)) {
+                    expr = floatMap.get(expr);
+                }
+                if (!isFloatLiteral(currValue)) {
+                    currValue = floatMap.get(currValue);
+                }
+                float newFloat = parseFloat(currValue) * parseFloat(expr);
+                newVal = Float.toString(newFloat);
+                floatMap.put(name, newVal);
+            } else if (type == 3) {
+                System.out.println("Cannot multiply by a boolean type");
+            }
+
+        } else if (op.equals("/=")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                if (!isIntLiteral(currValue)) {
+                    currValue = intMap.get(currValue);
+                }
+                int newInt = parseInt(currValue) / parseInt(expr);
+                newVal = Integer.toString(newInt);
+                intMap.put(name, newVal);
+            } else if (type == 2) {
+                if (!isFloatLiteral(expr)) {
+                    expr = floatMap.get(expr);
+                }
+                if (!isFloatLiteral(currValue)) {
+                    currValue = floatMap.get(currValue);
+                }
+                float newFloat = parseFloat(currValue) / parseFloat(expr);
+                newVal = Float.toString(newFloat);
+                floatMap.put(name, newVal);
+            } else if (type == 3) {
+                System.out.println("Cannot divide by a boolean type");
+            }
+
+        } else if (op.equals("%=")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                if (!isIntLiteral(currValue)) {
+                    currValue = intMap.get(currValue);
+                }
+                int newInt = parseInt(currValue) % parseInt(expr);
+                newVal = Integer.toString(newInt);
+                intMap.put(name, newVal);
+            } else if (type == 2) {
+                if (!isFloatLiteral(expr)) {
+                    expr = floatMap.get(expr);
+                }
+                if (!isFloatLiteral(currValue)) {
+                    currValue = floatMap.get(currValue);
+                }
+                float newFloat = parseFloat(currValue) % parseFloat(expr);
+                newVal = Float.toString(newFloat);
+                floatMap.put(name, newVal);
+            } else if (type == 3) {
+                System.out.println("Cannot divide by a boolean type");
+            }
+
+        } else if (op.equals("^=")) {
+            if (type == 1) {
+                if (!isIntLiteral(expr)) {
+                    expr = intMap.get(expr);
+                }
+                if (!isIntLiteral(currValue)) {
+                    currValue = intMap.get(currValue);
+                }
+                int newInt = (int) Math.pow(parseInt(currValue) ,parseInt(expr));
+                newVal = Integer.toString(newInt);
+                intMap.put(name, newVal);
+            } else if (type == 2) {
+                System.out.println("Cannot raise float to a power and return float");
+//                if (!isFloatLiteral(expr)) {
+//                    expr = floatMap.get(expr);
+//                }
+//                if (!isFloatLiteral(currValue)) {
+//                    currValue = floatMap.get(currValue);
+//                }
+//                float newFloat = (int) (Math.pow(parseFloat(currValue),  parseFloat(expr)));
+//                newVal = Float.toString(newFloat);
+//                floatMap.put(name, newVal);
+            } else if (type == 3) {
+                System.out.println("Cannot raise boolean to a power");
+            }
+        }
+
     }
 
-    // formalParam = "(" [paramDecl { "," paramDecl}] ")"
-    private void formalParam() {
-        expect(Token.Kind.OPEN_PAREN);
-        if (have(NonTerminal.PARAM_DECL)){
+    private String evaluate(String lhs, String op, String rhs) {
+        int type = 0;
+
+        // sets values for literals
+        if (isIntLiteral(lhs) && isIntLiteral(rhs)) {
+            type = 1;
+        } if (isFloatLiteral(lhs) && isFloatLiteral(rhs)) {
+            type = 2;
+        } else {
+            type = 3;
+        }
+
+        // simplifies values if possible
+        if (intMap.containsKey(lhs)) {
+            lhs = intMap.get(lhs);
+            type = 1;
+        }
+        if (intMap.containsKey(rhs)) {
+            rhs = intMap.get(rhs);
+            type = 1;
+        }
+        if (floatMap.containsKey(lhs)) {
+            lhs = floatMap.get(lhs);
+            type = 2;
+        }
+        if (floatMap.containsKey(rhs)) {
+            rhs = floatMap.get(rhs);
+            type = 2;
+        }
+        if (boolMap.containsKey(lhs)) {
+            lhs = boolMap.get(lhs);
+            type = 3;
+        }
+        if (boolMap.containsKey(rhs)) {
+            rhs = boolMap.get(rhs);
+            type = 3;
+        }
+
+        // perform operations
+        if (op.equals("+")) {
+            if (type == 1) {
+                int newVal = parseInt(lhs) + parseInt(rhs);
+                return Integer.toString(newVal);
+            }
+            if (type == 2) {
+                float newVal = parseFloat(lhs) + parseFloat(rhs);
+                return Float.toString(newVal);
+            }
+        } else if (op.equals("-")) {
+            if (type == 1) {
+                int newVal = parseInt(lhs) - parseInt(rhs);
+                return Integer.toString(newVal);
+            }
+            if (type == 2) {
+                float newVal = parseFloat(lhs) - parseFloat(rhs);
+                return Float.toString(newVal);
+            }
+        } else if (op.equals("*")) {
+            if (type == 1) {
+                int newVal = parseInt(lhs) * parseInt(rhs);
+                return Integer.toString(newVal);
+            }
+            if (type == 2) {
+                float newVal = parseFloat(lhs) * parseFloat(rhs);
+                return Float.toString(newVal);
+            }
+        } else if (op.equals("/")) {
+            if (type == 1) {
+                int newVal = parseInt(lhs) / parseInt(rhs);
+                return Integer.toString(newVal);
+            }
+            if (type == 2) {
+                float newVal = parseFloat(lhs) / parseFloat(rhs);
+                return Float.toString(newVal);
+            }
+        } else if (op.equals("%")) {
+            if (type == 1) {
+                int newVal = parseInt(lhs) % parseInt(rhs);
+                return Integer.toString(newVal);
+            }
+            if (type == 2) {
+                float newVal = parseFloat(lhs) % parseFloat(rhs);
+                return Float.toString(newVal);
+            }
+        } else if (op.equals("^")) {
+            if (type == 1) {
+                int newVal = (int) Math.pow(parseInt(lhs), parseInt(rhs));
+                return Integer.toString(newVal);
+            }
+//            if (type == 2) {
+//                float newVal = (int) Math.pow(parseFloat(lhs) % parseFloat(rhs);
+//                return Float.toString(newVal);
+//            }
+        } else if (op.equals("and") && type == 3) {
+            boolean newVal = Boolean.parseBoolean(lhs) && Boolean.parseBoolean(rhs);
+            return Boolean.toString(newVal);
+        } else if (op.equals("or") && type == 3) {
+            boolean newVal = Boolean.parseBoolean(lhs) || Boolean.parseBoolean(rhs);
+            return Boolean.toString(newVal);
+        } else if (op.equals("==")) {
+            return Boolean.toString(lhs.equals(rhs));
+        } else if (op.equals("!=")) {
+            return Boolean.toString(!lhs.equals(rhs));
+        } else if (op.equals("<")) {
+            if (type == 1) {
+                boolean newVal = parseInt(lhs) < parseInt(rhs);
+                return Boolean.toString(newVal);
+            } else if (type == 2) {
+                boolean newVal = parseFloat(lhs) < parseFloat(rhs);
+                return Boolean.toString(newVal);
+            }
+        } else if (op.equals(">")) {
+            if (type == 1) {
+                boolean newVal = parseInt(lhs) > parseInt(rhs);
+                return Boolean.toString(newVal);
+            } else if (type == 2) {
+                boolean newVal = parseFloat(lhs) > parseFloat(rhs);
+                return Boolean.toString(newVal);
+            }
+        } else if (op.equals("<=")) {
+            if (type == 1) {
+                boolean newVal = parseInt(lhs) <= parseInt(rhs);
+                return Boolean.toString(newVal);
+            } else if (type == 2) {
+                boolean newVal = parseFloat(lhs) <= parseFloat(rhs);
+                return Boolean.toString(newVal);
+            }
+        } else if (op.equals(">=")) {
+            if (type == 1) {
+                boolean newVal = parseInt(lhs) >= parseInt(rhs);
+                return Boolean.toString(newVal);
+            } else if (type == 2) {
+                boolean newVal = parseFloat(lhs) >= parseFloat(rhs);
+                return Boolean.toString(newVal);
+            }
+        }
+
+        return lhs;
+    }
+
+    private String runFunction(String name, String arg) {
+        if (name.equals("readInt")) {
+            return Integer.toString(readInt());
+        } else if (name.equals("readFloat")) {
+            return Float.toString(readFloat());
+        } else if (name.equals("readBool")) {
+            return Boolean.toString((readBool()));
+        } else if (name.equals("printInt")) {
+            if (!isIntLiteral(arg)) {
+                arg = intMap.get(arg);
+            }
+            printInt(parseInt(arg));
+        } else if (name.equals("printFloat")) {
+            if (!isFloatLiteral(arg)) {
+                arg = floatMap.get(arg);
+            }
+            printFloat(parseFloat(arg));
+        } else if (name.equals("printBool")) {
+            if(!isBoolLiteral(arg)) {
+                arg = boolMap.get(arg);
+            }
+            printBool(Boolean.parseBoolean(arg));
+        } else if (name.equals("println")) {
+            println();
+        }
+        return "";
+    }
+
+    private void computation() {
+        Computation root = ast.root();
+        DeclarationList vars = root.variables();
+        if (vars != null){
+            for (Declaration var : vars.declarationList()) {
+                Symbol varSym = var.symbol();
+                Type varType = varSym.type();
+                int type = 0;
+                if (varType instanceof IntType) {
+                    type = 1;
+                } else if (varType instanceof FloatType) {
+                    type = 2;
+                } else if (varType instanceof BoolType) {
+                    type = 3;
+                }
+                insertMap(type, varSym.name(), "");
+            }
+        }
+
+        // dont care about function declarations
+
+        statSeq(root.mainStatementSequence());
+    }
+
+    public void statSeq(StatementSequence statementSequence){
+        ArrayList<Statement> statements = statementSequence.getStatements();
+        for (Statement statement : statements) {
+
+            if (statement instanceof ast.IfStatement) {
+                ifStatement((IfStatement)statement);
+            } else if (statement instanceof ReturnStatement) {
+                returnStatement((ReturnStatement) statement);
+            } else if (statement instanceof Assignment) {
+                assign((Assignment) statement);
+            } else if (statement instanceof FunctionCall) {
+                functionCall((FunctionCall)statement);
+            }
+        }
+    }
+
+    public void assign(Assignment assign) {
+        String name = designator(assign.lhs());
+        String expr = relExpr(assign.rhs());
+        String operator = assign.operator();
+        if (operator == null) {
+            operator = "=";
+        }
+        assignment(name, operator, expr);
+    }
+
+    public String designator(Expression expr) {
+        Identifier ident = (Identifier) expr;
+        return ident.symbol().name();
+
+        // TODO: Handle arrays
+    }
+
+    // TODO: figure out if this is working
+    public String relExpr(Expression expr) {
+        String leftSide = "";
+        if (expr.lhs() == null) {
+            leftSide += addExpr(expr);
+        }
+        else if (!(expr instanceof Relation)){
+          //leftSide += addExpr(expr.lhs());
+            leftSide += addExpr(expr);
+        }
+
+
+        if (expr instanceof Relation) {
+            Expression temp = expr;
+            leftSide += addExpr(expr.lhs());
+            String tempRight = addExpr(temp.rhs());
+            String tempOperator = ((Relation)temp).operator();
+            leftSide = evaluate(leftSide, tempOperator, tempRight);
+            temp = temp.rhs();
+            while (temp.rhs() instanceof Relation) {
+                String rightSide = addExpr(temp.rhs());
+                String operator = ((Relation) temp).operator();
+                leftSide = evaluate(leftSide, operator, rightSide);
+                temp = temp.rhs();
+            }
+
+        }
+
+        return leftSide;
+    }
+
+    public String addExpr(Expression expr) {
+        String leftSide = "";
+        if (expr.lhs() == null) {
+            leftSide += mulExpr(expr);
+        }
+        else if (!(expr instanceof Addition || expr instanceof Subtraction || expr instanceof LogicalOr)){
+            //leftSide += mulExpr(expr.lhs());
+            leftSide += mulExpr(expr);
+        }
+
+        if (expr instanceof Addition || expr instanceof Subtraction || expr instanceof LogicalOr) {
+            Expression temp = expr;
             do {
-                paramDecl();
-            } while(accept(Token.Kind.COMMA));
+                leftSide += mulExpr(expr.lhs());
+                String rightSide = mulExpr(temp.rhs());
+                String operator = "";
+                if (temp instanceof Addition) {
+                    operator = "+";
+                } else if (temp instanceof Subtraction) {
+                    operator = "-";
+                } else {
+                    operator = "or";
+                }
+                leftSide = evaluate(leftSide, operator, rightSide);
+                temp = temp.rhs();
+            } while (temp.rhs() instanceof Addition || temp.rhs() instanceof Subtraction || temp.rhs() instanceof LogicalOr);
         }
-        expect(Token.Kind.CLOSE_PAREN);
-
+        return leftSide;
     }
 
-    // paramDecl = paramType ident
-    private void paramDecl() {
-        paramType();
-        expect(Token.Kind.IDENT);
+    public String mulExpr(Expression expr) {
+        String leftSide = "";
+        if (expr.lhs() == null) {
+            leftSide += powExpr(expr);
+        }
+        else if (!(expr instanceof Multiplication || expr instanceof Division || expr instanceof Modulo || expr instanceof LogicalAnd)){
+            //leftSide += powExpr(expr.lhs());
+            leftSide = powExpr(expr);
+        }
+
+        if (expr instanceof Multiplication || expr instanceof Division || expr instanceof Modulo || expr instanceof LogicalAnd) {
+            Expression temp = expr;
+            do {
+                leftSide += powExpr(expr.lhs());
+                String rightSide = powExpr(temp.rhs());
+                String operator;
+                if (temp instanceof Multiplication) {
+                    operator = "*";
+                } else if (temp instanceof Division) {
+                    operator ="/";
+                } else if (temp instanceof  Modulo) {
+                    operator = "%";
+                } else {
+                    operator = "and";
+                }
+                leftSide = evaluate(leftSide, operator, rightSide);
+               temp = temp.rhs();
+           } while (temp.rhs() instanceof Multiplication|| temp.rhs() instanceof Division || temp.rhs() instanceof Modulo || temp.rhs() instanceof LogicalAnd);
+        }
+        return leftSide;
     }
 
-    // paramType = type {"[" "]"}
-    private void paramType() {
-        expect(NonTerminal.TYPE_DECL);
-        while (accept(Token.Kind.OPEN_BRACKET)) {
-            expect(Token.Kind.CLOSE_BRACKET);
+    public String powExpr(Expression expr) {
+        String leftSide = "";
+        if (expr.lhs() == null) {
+            leftSide += groupExpr(expr);
         }
+        else if (!(expr instanceof Power)){
+           // leftSide += groupExpr(expr.lhs());
+            leftSide = groupExpr(expr);
+        }
+        if (expr instanceof Power) {
+            Expression temp = expr;
+            do {
+                leftSide += groupExpr(expr.lhs());
+                String rightSide = groupExpr(temp.rhs());
+                String operator = "^";
+                leftSide = evaluate(leftSide, operator, rightSide);
+                temp = temp.rhs();
+            } while (temp.rhs() instanceof Power);
+        }
+        return leftSide;
     }
 
-    // funcBody = "{" {varDecl}  statSeq "}" ";"
-    private void funcBody() {
-        expect(Token.Kind.OPEN_BRACE);
-        while (have(NonTerminal.VAR_DECL)) {
-            varDecl();
+
+
+    public String groupExpr(Expression expr) {
+        if (expr instanceof BoolLiteral) {
+            return Boolean.toString(((BoolLiteral)expr).value());
+        } else if (expr instanceof IntegerLiteral) {
+            return Integer.toString(((IntegerLiteral)expr).value());
+        } else if (expr instanceof FloatLiteral) {
+            return Float.toString(((FloatLiteral)expr).value());
+        } else if (expr instanceof Identifier) {
+            return designator(expr);
+        } else if (expr instanceof LogicalNot) {
+            LogicalNot not = (LogicalNot) expr;
+            String toNegate = relExpr(not.expression());
+            if (!toNegate.equals("false") && !toNegate.equals("true")) {
+                toNegate = boolMap.get(toNegate);
+            }
+
+            if(toNegate.equals("true")) {
+                return "false";
+            } else if (toNegate.equals("false")) {
+                return "true";
+            }
+        } else if (expr instanceof Relation) {
+            return relExpr(expr);
+        } else if (expr instanceof FunctionCall) {
+            return functionCall((FunctionCall) expr);
         }
-
-        statSeq();
-
-        expect(Token.Kind.CLOSE_BRACE);
-        expect(Token.Kind.SEMICOLON);
+        return relExpr(expr);
     }
 
-    // statSeq = statement ";" { statement ";" }
-    private void statSeq() {
-        do{
-            statement();
-            expect(Token.Kind.SEMICOLON);
-        } while (have(NonTerminal.STATEMENT));
+    private String functionCall(FunctionCall functionCall) {
+        Symbol funcSym = functionCall.symbol();
+        // get first and only argument;
+        String arg = "";
+        if (!functionCall.args().args().isEmpty()) {
+            Expression argExp = functionCall.args().args().get(0);
 
+
+           arg = relExpr(argExp);
+        }
+
+        return runFunction(funcSym.name(), arg);
     }
 
-    // statement = assign | funcCall | ifStat | whileStat | repeatStat | returnStat
-    private void statement() {
-        // assign throws an error on erroneous function call (function call without "call" keyword)
-        if (have(NonTerminal.ASSIGN)) {
-            assign();
-        }
-        else if (have(NonTerminal.FUNC_CALL)) {
-            funcCall();
-        }
-        else if (have(NonTerminal.IF_STAT)) {
-            ifStat();
-        }
-        else if (have(NonTerminal.WHILE_STAT)) {
-            whileStat();
-        }
-        else if (have(NonTerminal.REPEAT_STAT)) {
-            repeatStat();
-        }
-        else if (have(NonTerminal.RETURN_STAT)) {
-            returnStat();
+    private void ifStatement(IfStatement ifStatement) {
+        String val = relExpr(ifStatement.relation());
+        if (val.equals("true")) {
+            statSeq(ifStatement.ifBlock());
         } else {
-            expect(NonTerminal.STATEMENT);
+            statSeq(ifStatement.elseBlock());
         }
 
     }
 
-    // assign = designator ( ( assignOp relExpr ) | unaryOp )
-    private void assign() {
-       designator();
-        if (accept(NonTerminal.ASSIGN_OP)) {
-            relExpr();
-        } else if (accept(NonTerminal.UNARY_OP)) {
-            return;
-        } else {
-            expect(NonTerminal.ASSIGN);
-        }
-    }
-
-    // relExpr = addExpr { relOp addExpr }
-    private void relExpr () {
-        // for empty return statements
-        if(have(Token.Kind.SEMICOLON) || have(Token.Kind.CLOSE_PAREN)){
+    private void returnStatement(ReturnStatement returnStatement) {
+        // checking for empty return statement
+        if (returnStatement.relation().lhs() != null) {
             return;
         }
-        addExpr();
-        while (accept(NonTerminal.REL_OP)){
-            addExpr();
-        }
     }
 
-    // addExpr = multExpr { addOp multExpr }
-    private void addExpr () {
-        multExpr();
-        while (accept(Token.Kind.ADD) || accept(Token.Kind.SUB) || accept(Token.Kind.OR)) {
-            multExpr();
-        }
-    }
-
-    // multExpr = powExpr { multOp powExpr }
-    private void multExpr() {
-        powExpr();
-        while (accept(Token.Kind.MUL) || accept(Token.Kind.DIV) || accept(Token.Kind.MOD) || accept(Token.Kind.AND)) {
-            powExpr();
-        }
-    }
-
-    // powExpr = groupExpr { powOp groupExpr }
-    private void powExpr () {
-        groupExpr();
-        while (accept(Token.Kind.POW)) {
-            groupExpr();
-        }
-    }
-
-    // groupExpr = literal | designator | "not" relExpr | relation | funcCall
-    private void groupExpr() {
-        if (accept(NonTerminal.LITERAL)) {
-            //System.out.println("lit" + lineNumber());
-            return;
-        } else if (have(NonTerminal.DESIGNATOR)) {
-           // System.out.println("des" + lineNumber());
-            designator();
-        } else if (accept(Token.Kind.NOT)) {
-           // System.out.println("relExp" + lineNumber());
-            relExpr();
-        } else if (have(Token.Kind.OPEN_PAREN)) {
-            //System.out.println("realtion" + lineNumber());
-            relation();
-        } else if (have(NonTerminal.FUNC_CALL)){
-            //System.out.println("call" + lineNumber());
-            funcCall();
-        } else {
-            expect(NonTerminal.GROUP_EXPR);
-        }
-    }
-
-    // relation = "(" relExpr ")"
-    private void relation() {
-        expect(Token.Kind.OPEN_PAREN);
-        relExpr();
-        expect(Token.Kind.CLOSE_PAREN);
-    }
-
-    // funCall = "call" ident "(" [ relExpr { "," relExpr } ] ")"
-    private void funcCall() {
-        expect(Token.Kind.CALL);
-        expect(Token.Kind.IDENT);
-        expect(Token.Kind.OPEN_PAREN);
-        relExpr();
-        while (accept(Token.Kind.COMMA)) {
-            relExpr();
-        }
-        expect(Token.Kind.CLOSE_PAREN);
-    }
-
-    // ifStat = "if" relation "then" statSeq [ "else" statSeq ] "fi"
-    private void ifStat() {
-        expect(Token.Kind.IF);
-        relation();
-        expect(Token.Kind.THEN);
-        statSeq();
-        if (accept(Token.Kind.ELSE)) {
-            statSeq();
-        }
-        expect(Token.Kind.FI);
-    }
-
-    // whileStat = "while" relation "do" statSeq "od"
-    private void whileStat () {
-        expect(Token.Kind.WHILE);
-        relation();
-        expect(Token.Kind.DO);
-        statSeq();
-        expect(Token.Kind.OD);
-    }
-
-    // repeatStat = "repeat" statSeq "until" relation
-    private void repeatStat () {
-        expect(Token.Kind.REPEAT);
-        statSeq();
-        expect(Token.Kind.UNTIL);
-        relation();
-    }
-
-    // returnStat = "return" [ relExpr ]
-    private void returnStat () {
-        expect(Token.Kind.RETURN);
-        relExpr();
-    }
 
 }

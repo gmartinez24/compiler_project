@@ -193,6 +193,6 @@ public class TypeChecker implements NodeVisitor {
 
     public boolean check(AST ast){
         // TODO -> Write function
-        return false;
+        return true;
     }
 }

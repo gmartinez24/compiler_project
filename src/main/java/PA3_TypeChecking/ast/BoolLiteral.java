@@ -15,8 +15,20 @@ public class BoolLiteral extends Node implements Expression{
         return this.value;
     }
 
+
+
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public Expression lhs() {
+        return null;
+    }
+
+    @Override
+    public Expression rhs() {
+        return null;
     }
 }

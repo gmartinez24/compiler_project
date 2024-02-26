@@ -26,4 +26,14 @@ public class Identifier extends Node implements Expression{
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public Expression lhs() {
+        return null;
+    }
+
+    @Override
+    public Expression rhs() {
+        return null;
+    }
 }

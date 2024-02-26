@@ -4,7 +4,7 @@ package co2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.function.Function;
+import java.io.InputStream;
 
 import ast.*;
 import types.TypeList;
@@ -56,6 +56,7 @@ public class Compiler {
     private Scanner scanner;
     private Token currentToken;
 
+    private AST ast;
     private int numDataRegisters; // available registers are [1..numDataRegisters]
     private List<Integer> instructions;
 
@@ -73,18 +74,21 @@ public class Compiler {
         // the computation function returns an instance of computation to pass
         // to constructor of AST as root node
         initSymbolTable();
-        return new AST(computation());
+        ast = new AST(computation());
+        return ast;
     }
     
-    public void interpret() {
-        initSymbolTable();
+    public void interpret(InputStream in) {
+        //initSymbolTable();
         try {
-            computation();
+            //Scanner interpretScanner = new Scanner();
+            Interpreter interpreter = new Interpreter(ast, in);
+            interpreter.interpret();
         }
         catch (QuitParseException q) {
             // too verbose
-            // errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
-            // errorBuffer.append("[Could not complete parsing.]");
+             errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
+             errorBuffer.append("[Could not complete parsing.]");
         }
     }
 
@@ -95,8 +99,8 @@ public class Compiler {
             return instructions.stream().mapToInt(Integer::intValue).toArray();
         }
         catch (QuitParseException q) {
-            // errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
-            // errorBuffer.append("[Could not complete parsing.]");
+             errorBuffer.append("SyntaxError(" + lineNumber() + "," + charPosition() + ")");
+             errorBuffer.append("[Could not complete parsing.]");
             return new ArrayList<Integer>().stream().mapToInt(Integer::intValue).toArray();
         }
     }
@@ -506,18 +510,19 @@ public class Compiler {
         Expression leftSide = null;
         Expression rightSide = null;
         leftSide = designator();
-        if (accept(NonTerminal.ASSIGN_OP)) {
+        if (have(NonTerminal.ASSIGN_OP)) {
+            String operator = expectRetrieve(NonTerminal.ASSIGN_OP).lexeme();
             rightSide = relExpr();
-            return new Assignment(lineNumber, charPosition, leftSide, rightSide);
+            return new Assignment(lineNumber, charPosition, leftSide,operator,  rightSide);
         } else if (have(NonTerminal.UNARY_OP)) {
             // hard code ++ and --
             String unaryOP = expectRetrieve(NonTerminal.UNARY_OP).lexeme();
             if (unaryOP == "++") {
                 rightSide = new Addition(lineNumber, charPosition, leftSide, new IntegerLiteral(lineNumber, charPosition, "1"));
-                return new Assignment(lineNumber, charPosition, leftSide, rightSide);
+                return new Assignment(lineNumber, charPosition, leftSide,"++", rightSide);
             } else {
                 rightSide = new Subtraction(lineNumber, charPosition, leftSide, new IntegerLiteral(lineNumber, charPosition, "1"));
-                return new Assignment(lineNumber, charPosition, leftSide, rightSide);
+                return new Assignment(lineNumber, charPosition, leftSide, "--",rightSide);
             }
 
         } else {
@@ -655,7 +660,7 @@ public class Compiler {
         List<Expression> args = new ArrayList<>();
         Expression firstArg = relExpr();
         ArgumentList argumentList;
-        if(firstArg == null){
+        if(firstArg instanceof Relation && firstArg.lhs() == null){
             argumentList = new ArgumentList(lineNumber(), charPosition(), args);
         }
         else{
