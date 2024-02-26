@@ -5,14 +5,14 @@ main
 int[10] a;
 int x, y;
 
-function foo(int z, int r) : bool
+function foo(int x, int y) : bool
 {
-    return z < r;
+    return x < y;
 };
 
-function bar(int n, int m) : int
+function bar(int x, int y) : int
 {
-    return n + m;
+    return x + y;
 };
 
 {
