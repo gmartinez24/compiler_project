@@ -56,6 +56,10 @@ public class FuncType extends Type {
         if(args == null){
         }
 
+        if (params.length() != args.length()) {
+            return new ErrorType("err");
+        }
+
         for(int i = 0; i < args.length(); i++){
             if(!params.at(i).getClass().equals( args.at(i).getClass())){
                 return new ErrorType("error here");

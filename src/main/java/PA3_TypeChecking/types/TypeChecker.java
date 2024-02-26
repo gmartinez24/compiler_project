@@ -177,6 +177,7 @@ public class TypeChecker implements NodeVisitor {
         Type rhs = currType;
         if(lhs.add(rhs) instanceof ErrorType){
            // System.out.println("add err");
+            currType = lhs.add(rhs);
             reportError(node.lineNumber(), node.charPosition(), ((ErrorType) lhs.add(rhs)).message());
         }
     }
@@ -259,7 +260,7 @@ public class TypeChecker implements NodeVisitor {
         TypeList inputTypes = new TypeList();
         for(Expression a: node.args().args()){
             a.accept(this);
-            inputTypes.add(currType);
+            inputTypes.append(currType);
         }
 
         int count = 0;
@@ -400,7 +401,7 @@ public class TypeChecker implements NodeVisitor {
         // bool readBool()
         FuncType readBoolType = new FuncType();
         readBoolType.setReturnType(new VoidType());
-        readBoolType.setName("readBoolType");
+        readBoolType.setName("readBool");
         functionList.add(readBoolType);
 
         // void printInt(int arg)
@@ -413,7 +414,7 @@ public class TypeChecker implements NodeVisitor {
 
         // void printFloat(int arg)
         FuncType printFloatType = new FuncType();
-        printFloatType.params().append(new IntType());
+        printFloatType.params().append(new FloatType());
         printFloatType.setReturnType(new VoidType());
         printFloatType.setName("printFloat");
         functionList.add(printFloatType);
@@ -421,7 +422,7 @@ public class TypeChecker implements NodeVisitor {
 
         // void printBool(bool arg)
         FuncType printBoolType = new FuncType();
-        printBoolType.params().append(new IntType());
+        printBoolType.params().append(new BoolType());
         printBoolType.setReturnType(new VoidType());
         printBoolType.setName("printBool");
         functionList.add(printBoolType);
