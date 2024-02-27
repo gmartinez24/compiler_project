@@ -1,5 +1,7 @@
 package ast;
 
+import types.Type;
+
 public class LogicalOr extends Node implements Expression{
     Expression rhs;
     Expression lhs;
@@ -20,5 +22,10 @@ public class LogicalOr extends Node implements Expression{
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public Type type() {
+        return lhs.type();
     }
 }

@@ -1,6 +1,8 @@
 package ast;
 
 
+import types.Type;
+
 public class BoolLiteral extends Node implements Expression{
     private boolean value;
     private types.Type type ;
@@ -15,7 +17,10 @@ public class BoolLiteral extends Node implements Expression{
         return this.value;
     }
 
-
+    @Override
+    public Type type() {
+        return type;
+    }
 
     @Override
     public void accept(NodeVisitor visitor) {

@@ -130,11 +130,30 @@ public class Compiler {
             reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
             return null;
         }
+
+    }
+
+    private Symbol tryResolveFunction (Token tok) {
+        try {
+            return symbolTable.lookup(tok.lexeme());
+        } catch(SymbolNotFoundError e) {
+            reportResolveSymbolError(tok.lexeme(), tok.lineNumber(), tok.charPosition());
+            return null;
+        }
     }
 
     private Symbol tryDeclareVariable (Symbol sym) {
         try {
             return symbolTable.insert(sym);
+        } catch (RedeclarationError e) {
+            reportDeclareSymbolError(sym.name(), sym.lineNumber(), sym.charPosition());
+            return null;
+        }
+    }
+
+    private Symbol  tryDeclareFunction (Symbol sym) {
+        try {
+            return symbolTable.insertFunction(sym);
         } catch (RedeclarationError e) {
             reportDeclareSymbolError(sym.name(), sym.lineNumber(), sym.charPosition());
             return null;
@@ -287,7 +306,7 @@ public class Compiler {
             funcList = new DeclarationList(currentToken.lineNumber(), currentToken.charPosition());
             while (have(NonTerminal.FUNC_DECL)) {
                 FunctionDeclaration funcDec = funcDecl();
-                tryDeclareVariable(funcDec.funcSym());
+                tryDeclareFunction(funcDec.funcSym());
                 funcList.addDeclaration(funcDec);
 
             }
@@ -379,6 +398,8 @@ public class Compiler {
         } else {
             expect(NonTerminal.FUNC_DECL);
         }
+        Symbol funcSym = new Symbol(funcType, name, func.lineNumber(), func.charPosition());
+        tryDeclareFunction(funcSym);
 
         FunctionBody functionBody = funcBody();
 
@@ -665,6 +686,7 @@ public class Compiler {
             //NO ARGS
             argumentList = new ArgumentList(lineNumber(), charPosition(), args);
             expect(Token.Kind.CLOSE_PAREN);
+            //Symbol funcSym = tryResolveFunction(ident.lexeme()+"()", ident.lineNumber(), ident.charPosition());
             return new FunctionCall(tok.lineNumber(), tok.charPosition(), funcSym, argumentList);
 
 
@@ -676,8 +698,14 @@ public class Compiler {
             args.add(relExpr());
         }
         argumentList = new ArgumentList(firstArg.lineNumber(), firstArg.charPosition(), args);
-
-
+//        String funcSymbolInTable = ident.lexeme() + "(";
+//        for (int i = 0; i < args.size(); i++) {
+//            funcSymbolInTable += args.get(i).type().toString() + ",";
+//        }
+//        funcSymbolInTable = funcSymbolInTable.substring(0, funcSymbolInTable.length()-1);
+//        funcSymbolInTable += ")->"+ args.get(0).type().toString();
+//        System.out.println(funcSymbolInTable);
+//        Symbol funcSym = tryResolveFunction(funcSymbolInTable, ident.lineNumber(), ident.charPosition());
 
         expect(Token.Kind.CLOSE_PAREN);
 

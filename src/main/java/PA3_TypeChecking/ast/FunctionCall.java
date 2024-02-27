@@ -32,4 +32,6 @@ public class FunctionCall extends Node implements Statement,Expression{
     public Expression rhs() {
         return null;
     }
+
+    public types.Type type() {return funcSym.type();}
 }

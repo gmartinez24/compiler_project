@@ -1,6 +1,7 @@
 package ast;
 
 import co2.Symbol;
+import types.Type;
 
 import java.util.List;
 
@@ -30,6 +31,11 @@ public class Identifier extends Node implements Expression{
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public Type type() {
+        return identSymbol.type();
     }
 
     @Override

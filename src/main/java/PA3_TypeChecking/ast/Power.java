@@ -1,5 +1,7 @@
 package ast;
 
+import types.Type;
+
 import java.security.spec.ECPoint;
 
 public class Power extends Node implements Expression{
@@ -22,5 +24,9 @@ public class Power extends Node implements Expression{
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+    @Override
+    public Type type() {
+        return lhs.type();
     }
 }

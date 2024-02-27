@@ -153,10 +153,13 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit(FunctionCall node) {
-        println(node,"[" + node.symbol().toString() + "]");
-        depth++;
-        node.args().accept(this);
-        depth--;
+        if (node.symbol() != null) {
+            println(node,"[" + node.symbol().toString() + "]");
+            depth++;
+            node.args().accept(this);
+            depth--;
+        }
+
     }
 
     @Override

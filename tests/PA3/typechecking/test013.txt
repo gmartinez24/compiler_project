@@ -5,7 +5,7 @@ main
 int x;
 
 {
-    x = 10 && true;
+    x = 10 and true;
 
     call printInt(x);
     call println();

@@ -1,5 +1,7 @@
 package ast;
 
+import types.Type;
+
 public class Addition extends Node implements Expression{
     Expression lhs;
     Expression rhs;
@@ -7,6 +9,11 @@ public class Addition extends Node implements Expression{
         super(lineNum, charPos);
         this.lhs = lhs;
         this.rhs = rhs;
+    }
+
+    @Override
+    public Type type() {
+        return lhs().type();
     }
 
     public Expression lhs() {

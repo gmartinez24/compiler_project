@@ -1,5 +1,7 @@
 package ast;
 
+import types.Type;
+
 public class Subtraction extends Node implements Expression{
     Expression lhs;
     Expression rhs;
@@ -8,6 +10,11 @@ public class Subtraction extends Node implements Expression{
         super(lineNum, charPos);
         this.lhs = leftSide;
         this.rhs = rightSide;
+    }
+
+    @Override
+    public Type type() {
+        return lhs.type();
     }
 
     public Expression lhs() {
@@ -22,4 +29,6 @@ public class Subtraction extends Node implements Expression{
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
     }
+
+
 }

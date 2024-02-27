@@ -95,9 +95,19 @@ public class SymbolTable {
         if (sym == null) {
             throw new SymbolNotFoundError(name);
         } else {
+            System.out.println(sym.name() + sym.type());
             return sym;
         }
         //throw new RuntimeException("implement lookup variable");
+    }
+
+    public Symbol lookupInScope(String name, int scope) throws SymbolNotFoundError{
+        Symbol sym = Scopes.get(scope).get(name);
+        if (sym == null) {
+            throw new SymbolNotFoundError(name);
+        } else {
+            return sym;
+        }
     }
 
     // insert name in SymbolTable
@@ -105,7 +115,7 @@ public class SymbolTable {
         //If the lookup throws an error, doesn't exist so we can insert
         //Changing this algo
         try{
-            this.lookup(sym.name());
+            this.lookupInScope(sym.name(), currentScope);
             throw new RedeclarationError(sym.name());
         }
         catch(SymbolNotFoundError e){
@@ -113,6 +123,22 @@ public class SymbolTable {
         }
 
         //throw new RuntimeException("implement insert variable");
+    }
+
+    public Symbol insertFunction(Symbol sym) throws RedeclarationError {
+        try {
+            System.out.println(sym.name());
+            Symbol existing = this.lookupInScope(sym.name(), currentScope);
+            if (existing.type().toString() == sym.type().toString()) {
+                throw new RedeclarationError(sym.name()+sym.type());
+            } else {
+                return Scopes.get(currentScope).put(sym.name(), sym);
+            }
+
+
+        } catch (SymbolNotFoundError e) {
+            return Scopes.get(currentScope).put(sym.name(), sym);
+        }
     }
 
     public void enterScope () {

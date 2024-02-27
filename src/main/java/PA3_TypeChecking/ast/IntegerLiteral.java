@@ -17,6 +17,10 @@ public class IntegerLiteral extends Node implements Expression{
         return this.value;
     }
 
+    public types.Type type() {
+        return type;
+    }
+
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);

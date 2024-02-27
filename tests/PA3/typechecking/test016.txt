@@ -11,7 +11,7 @@ function Fibo(int x) : int
     if ((x == 1) or (x == 0)) then
         return 1;
     else 
-        return Fibo(x - 1) + Fibo(x - 2);
+        return call Fibo(x - 1) + call Fibo(x - 2);
     fi;
 };
 

@@ -1,6 +1,7 @@
 package ast;
 
 import co2.Token;
+import types.Type;
 
 public class Relation extends Node implements Expression{
 
@@ -24,6 +25,11 @@ public class Relation extends Node implements Expression{
 
     public String operator() {
         return op.lexeme();
+    }
+
+    @Override
+    public Type type() {
+        return lhs.type();
     }
 
     public Expression lhs() {

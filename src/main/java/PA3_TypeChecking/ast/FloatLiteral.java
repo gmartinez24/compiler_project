@@ -1,5 +1,8 @@
 package ast;
 
+import types.FloatType;
+import types.Type;
+
 import static java.lang.Float.parseFloat;
 
 public class FloatLiteral extends Node implements Expression{
@@ -29,5 +32,10 @@ public class FloatLiteral extends Node implements Expression{
     @Override
     public Expression rhs() {
         return null;
+    }
+
+    @Override
+    public Type type() {
+        return new FloatType();
     }
 }

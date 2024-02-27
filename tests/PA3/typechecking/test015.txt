@@ -2,8 +2,9 @@
 // Testing for calling wrong type for function
 main
 
-bool x = true;
 
+bool x;
 {
+    x = true;
     call printInt(x);
 }.
