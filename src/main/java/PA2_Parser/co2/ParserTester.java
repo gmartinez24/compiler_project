@@ -46,7 +46,7 @@ public class ParserTester {
         }
         
         co2.Parser p = new co2.Parser(s, in);
-        p.parse();
+        //p.parse();
         if (p.hasError()) {
             System.out.println("Error parsing file.");
             System.out.println(p.errorReport());

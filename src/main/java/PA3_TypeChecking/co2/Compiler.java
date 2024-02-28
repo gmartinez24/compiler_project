@@ -367,13 +367,17 @@ public class Compiler {
         Token.Kind returnType = currentToken.kind();
         if (accept(Token.Kind.VOID) || accept(NonTerminal.TYPE_DECL)) {
             if (returnType == Token.Kind.VOID) {
-                funcType.params().append(new VoidType());
+                funcType.setReturnType(new VoidType());
             } else if (returnType == Token.Kind.INT) {
-                funcType.params().append(new IntType());
+                funcType.setReturnType(new IntType());
             } else if (returnType == Token.Kind.FLOAT) {
-                funcType.params().append(new FloatType());
+
+                funcType.setReturnType(new FloatType());
+
             } else if (returnType == Token.Kind.BOOL) {
-                funcType.params().append(new BoolType());
+
+                funcType.setReturnType(new BoolType());
+
             }
 
         } else {
@@ -384,7 +388,7 @@ public class Compiler {
 
         exitScope();
 
-        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), funcType, name, params, functionBody);
+        return new FunctionDeclaration(func.lineNumber(), func.charPosition(), funcType.getReturnType(), name, params, functionBody);
     }
 
     // formalParam = "(" [paramDecl { "," paramDecl}] ")"

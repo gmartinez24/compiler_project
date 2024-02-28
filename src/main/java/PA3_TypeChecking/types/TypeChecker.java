@@ -14,7 +14,7 @@ public class TypeChecker implements NodeVisitor {
     //In the types directory.
     
     private StringBuilder errorBuffer = new StringBuilder();
-    private Symbol currentFunction;
+    private FuncType currFunc;
     private ArrayList<FuncType> functionList;
     private Type currType = new VoidType();
 
@@ -112,6 +112,7 @@ public class TypeChecker implements NodeVisitor {
         if(lhs.pow(rhs) instanceof ErrorType){
           //  System.out.println("pow err");
             reportError(node.lineNumber(), node.charPosition(), lhs.pow(rhs).toString());
+            currType = lhs.pow(rhs);
         }
     }
 
@@ -125,6 +126,7 @@ public class TypeChecker implements NodeVisitor {
         if(lhs.mul(rhs) instanceof ErrorType){
         //    System.out.println("mult err");
             reportError(node.lineNumber(), node.charPosition(), lhs.mul(rhs).toString());
+            currType = lhs.mul(rhs);
         }
     }
 
@@ -138,6 +140,7 @@ public class TypeChecker implements NodeVisitor {
         if(lhs.div(rhs) instanceof ErrorType){
           //  System.out.println("div err");
             reportError(node.lineNumber(), node.charPosition(), lhs.div(rhs).toString());
+            currType = lhs.div(rhs);
         }
     }
 
@@ -151,6 +154,7 @@ public class TypeChecker implements NodeVisitor {
         if(lhs.mod(rhs) instanceof ErrorType){
         //    System.out.println("mod err");
             reportError(node.lineNumber(), node.charPosition(), lhs.mul(rhs).toString());
+            currType = lhs.mod(rhs);
         }
     }
 
@@ -192,6 +196,7 @@ public class TypeChecker implements NodeVisitor {
         if(lhs.sub(rhs) instanceof ErrorType){
            // System.out.println("sub err");
             reportError(node.lineNumber(), node.charPosition(), lhs.sub(rhs).toString());
+            currType = lhs.sub(rhs);
         }
     }
 
@@ -205,6 +210,7 @@ public class TypeChecker implements NodeVisitor {
         if(lhs.or(rhs) instanceof ErrorType){
            // System.out.println("or err");
             reportError(node.lineNumber(), node.charPosition(),((ErrorType) lhs.mul(rhs)).message());
+            currType = lhs.or(rhs);
         }
     }
 
@@ -261,30 +267,44 @@ public class TypeChecker implements NodeVisitor {
         for(Expression a: node.args().args()){
             a.accept(this);
             inputTypes.append(currType);
+
         }
 
+
         int count = 0;
+        int retIndex = -1;
         for(int i = 0; i < functionList.size(); i++){
             //System.out.println(node.symbol().name());
             if(!(functionList.get(i).call(inputTypes) instanceof ErrorType) && node.symbol().name().equals(functionList.get(i).getName())){
                 count++;
+                retIndex = i;
             }
         }
         if(inputTypes.length() == 0){
             if(count == 0){
                 reportError(node.lineNumber(), node.charPosition(), "Call with args TypeList() matches no function signature.");
+                currType = new ErrorType("Call with args TypeList() matches no function signature.");
             }
-            if(count > 1){
+            else if(count > 1){
                 reportError(node.lineNumber(), node.charPosition(), "Call with args TypeList()  matches multiple function signatures.");
+                currType = new ErrorType("Call with args TypeList()  matches multiple function signatures.");
+            }
+            else{
+                currType = functionList.get(retIndex).getReturnType();
             }
         }
         else{
             if(count == 0){
                 //currType = new ErrorType("Call with args " + inputTypes + " matches no function signature.");
                 reportError(node.lineNumber(), node.charPosition(), "Call with args " + inputTypes + " matches no function signature.");
+                currType = new ErrorType("Call with args " + inputTypes + " matches no function signature.");
             }
-            if(count > 1){
+            else if(count > 1){
                 reportError(node.lineNumber(), node.charPosition(), "Call with args " + inputTypes + " matches multiple function signatures.");
+                currType = new ErrorType("Call with args " + inputTypes + " matches multiple function signatures.");
+            }
+            else{
+                currType = functionList.get(retIndex).getReturnType();
             }
         }
 
@@ -318,25 +338,27 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(RepeatStatement node) {
 //        System.out.println("rep stmt");
+        node.repeatBlock().accept(this);
         node.relation().accept(this);
         if(!(currType instanceof BoolType)){
            // System.out.println("repeat err");
             reportError(node.lineNumber(), node.charPosition(), "RepeatStat requires bool condition not " + currType + ".");
         }
-        node.repeatBlock().accept(this);
+
     }
 
     @Override
     public void visit(ReturnStatement node) {
 //        System.out.println("ret stmt");
         node.relation().accept(this);
+        if(currFunc.getName().equals("main") && !(currType instanceof VoidType)){
 
-        if(currentFunction.name().equals("main") && !(currType instanceof VoidType)){
             reportError(node.lineNumber(), node.charPosition(), "Function main returns " + currType +  " instead of void.");
         }
-         else if(currentFunction.type().getClass() != currType.getClass()){
-            reportError(node.lineNumber(), node.charPosition(), "Function " + currentFunction.name() + " returns " + currType + " instead of " + currentFunction.type() + ".");
+         else if(!(currFunc.getReturnType().toString().equals(currType.toString()))){
+            reportError(node.lineNumber(), node.charPosition(), "Function " + currFunc.getName() + " returns " + currType + " instead of " + currFunc.getReturnType() + ".");
         }
+
 
     }
 
@@ -365,7 +387,17 @@ public class TypeChecker implements NodeVisitor {
     public void visit(FunctionDeclaration node) {
 //        System.out.println("funcdec");
         //Not checking functions at the moment, just going to statSeq
-        currentFunction = node.funcSym();
+        FuncType newFunc = new FuncType();
+        TypeList params = new TypeList();
+        for(Symbol p: node.params()){
+            params.append(p.type());
+        }
+        newFunc.setName(node.symbol().name());
+
+        newFunc.setReturnType(node.getType());
+        newFunc.setParams(params);
+        currFunc = newFunc;
+
         node.body().accept(this);
     }
 
@@ -377,6 +409,15 @@ public class TypeChecker implements NodeVisitor {
         for(Declaration d: node.declarationList()){
             if(d instanceof FunctionDeclaration){
                 FunctionDeclaration temp = (FunctionDeclaration) d;
+                FuncType newFunc = new FuncType();
+                TypeList params = new TypeList();
+                for(Symbol p: temp.params()){
+                    params.append(p.type());
+                }
+                newFunc.setName(temp.symbol().name());
+                newFunc.setReturnType(temp.getType());
+                newFunc.setParams(params);
+                functionList.add(newFunc);
                 d.accept(this);
             }
         }
@@ -387,21 +428,21 @@ public class TypeChecker implements NodeVisitor {
         // int readInt()
         functionList = new ArrayList<>();
         FuncType readIntType = new FuncType();
-        readIntType.setReturnType(new VoidType() );
+        readIntType.setReturnType(new IntType() );
         readIntType.setName("readInt");
         functionList.add(readIntType);
 
 
         // float readFloat()
         FuncType readFloatType = new FuncType();
-        readFloatType.setReturnType(new VoidType());
+        readFloatType.setReturnType(new FloatType());
         readFloatType.setName("readFloat");
         functionList.add(readFloatType);
 
 
         // bool readBool()
         FuncType readBoolType = new FuncType();
-        readBoolType.setReturnType(new VoidType());
+        readBoolType.setReturnType(new BoolType());
         readBoolType.setName("readBool");
         functionList.add(readBoolType);
 
@@ -454,7 +495,9 @@ public class TypeChecker implements NodeVisitor {
         if(node.functions() != null){
             node.functions().accept(this);
         }
-        currentFunction = new Symbol(new VoidType(), "main", node.lineNumber(), node.charPosition());
+        currFunc = new FuncType();
+        currFunc.setName("main");
+        currFunc.setReturnType(new VoidType());
         node.mainStatementSequence().accept(this);
     }
 

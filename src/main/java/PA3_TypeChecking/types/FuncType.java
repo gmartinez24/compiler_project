@@ -47,17 +47,14 @@ public class FuncType extends Type {
     }
 
     public Type call(TypeList args){
-        if(args == null && params.length() != 0){
+        if(args == null && params.length() == 0){
             return returnType;
         }
-        if(args == null &&  params.length() != 0){
-            return new ErrorType("Cannot match function with Typelist().");
+        else if(args == null){
+            return new ErrorType("error");
         }
-        if(args == null){
-        }
-
-        if (params.length() != args.length()) {
-            return new ErrorType("err");
+        if(args.length() != params.length()){
+            return new ErrorType("error");
         }
 
         for(int i = 0; i < args.length(); i++){
@@ -67,5 +64,13 @@ public class FuncType extends Type {
         }
         return returnType;
 
+    }
+
+    public Type getReturnType() {
+        return returnType;
+    }
+
+    public TypeList getParams(){
+        return params;
     }
 }
